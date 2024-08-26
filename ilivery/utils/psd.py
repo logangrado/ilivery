@@ -163,7 +163,6 @@ def _apply_operator(stack, operators):
 
 
 def get_section_mask(expression, template):
-    # tokens = re.findall(r"[a-zA-Z0-9_]+|[&|~()]", expression)
     tokens = re.findall(r"[a-zA-Z0-9_.]+|[&|~()]", expression)
     stack = []
     operators = []
@@ -175,11 +174,18 @@ def get_section_mask(expression, template):
     while i < len(tokens):
         token = tokens[i]
         if re.match(r"[a-zA-Z0-9_]+", token):  # It's a word
-            stack.append(_get_section_component(token, template))
-        elif token in ("&", "|", "~"):
-            while operators and operators[-1] in ("&", "|", "~") and operators[-1] != "(":
+            # If there's a pending NOT (~) operator, apply it immediately
+            if operators and operators[-1] == "~":
+                operators.pop()  # Remove the NOT operator
+                stack.append(~_get_section_component(token, template))
+            else:
+                stack.append(_get_section_component(token, template))
+        elif token in ("&", "|"):
+            while operators and operators[-1] in ("&", "|") and operators[-1] != "(":
                 stack, operators = _apply_operator(stack, operators)
             operators.append(token)
+        elif token == "~":
+            operators.append(token)  # Delay application until the operand is found
         elif token == "(":
             operators.append(token)
         elif token == ")":
