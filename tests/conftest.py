@@ -88,7 +88,8 @@ def compare_ref_image(request, test_id):
         if grid:
             image = _add_grid(image, grid)
 
-        path = (REF_BASE_PATH / test_id).with_suffix(".png")
+        path = REF_BASE_PATH / test_id
+        path = path.with_suffix(path.suffix + ".png")
 
         if request.config.getoption("update_ref_layers"):
             path.parent.mkdir(exist_ok=True, parents=True)
