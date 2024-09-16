@@ -38,7 +38,7 @@ def _get_cache_path_and_checksum(path):
     return cache_path, paths, checksum
 
 
-def _cache_psd_recursive(cache_dir, group, parent_groups=None):
+def _cache_psd_recursive(cache_dir, group, size, parent_groups=None):
     if not group.is_visible():
         group.visible = True
 
@@ -50,7 +50,7 @@ def _cache_psd_recursive(cache_dir, group, parent_groups=None):
     for item in group:
         if item.is_group():
             group_cache_dir = cache_dir / item.name
-            _cache_psd_recursive(group_cache_dir, item, parent_groups=parent_groups + [group.name])
+            _cache_psd_recursive(group_cache_dir, item, size, parent_groups=parent_groups + [group.name])
         else:
             # Remove .tga from end if item names
             name = item.name
@@ -62,13 +62,10 @@ def _cache_psd_recursive(cache_dir, group, parent_groups=None):
             layer_cache_path.parent.mkdir(exist_ok=True, parents=True)
             item.visible = True
 
-            if item.offset != (0, 0):
-                logger.warning(f"Layer {item.name} has nonzero offset: {item.offset}, skipping")
+            layer = Image.new(size=size, mode="RGBA")
+            layer.alpha_composite(item.composite(),dest=item.offset)
 
-            else:
-                layer = item.composite()
-                # layer.save(fp=layer_cache_path, format="tga", compression="tga_rle")
-                layer.save(fp=layer_cache_path, format="png", compression_level=0)
+            layer.save(fp=layer_cache_path, format="png", compression_level=0)
 
 
 def _load_cached_psd(cache_dir, groups=None):
@@ -213,7 +210,7 @@ def get_section_mask(expression, template):
     return section_mask, bbox
 
 
-def load_layers(path, groups=None):
+def load_layers(path, groups=None, size=(2048,2048)):
     logger.info(f"Loading PSD layers: {path}")
 
     cache_base_path, cache_paths, checksum = _get_cache_path_and_checksum(path)
@@ -231,7 +228,7 @@ def load_layers(path, groups=None):
             shutil.rmtree(cache_base_path)
         psd = PSDImage.open(path)
 
-        _cache_psd_recursive(cache_paths["images"], psd)
+        _cache_psd_recursive(cache_paths["images"], psd, size)
         # Write checksum
         with open(cache_paths["checksum"], "w") as f:
             f.writelines(checksum)
