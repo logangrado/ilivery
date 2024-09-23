@@ -58,6 +58,38 @@ class TestGradientCFunc:
         compare_ref_image(image)
 
 
+class TestVoronoiCFunc:
+    def test_basic(self, compare_ref_image):
+        config = {
+            "type": "VORONOI",
+            "levels": 3,
+            "spacing": 20,
+        }
+
+        config = pydantic.TypeAdapter(ColorFunction).validate_python(config)
+        cfunc = colorfunc_from_config(config)
+
+        image = _image_from_cfunc(cfunc)
+
+        compare_ref_image(image)
+
+    def test_basic_anisotropic(self, compare_ref_image):
+        config = {
+            "type": "VORONOI",
+            "levels": 3,
+            "spacing": 20,
+            "anisotropy": 4,
+            "angle": 15,
+        }
+
+        config = pydantic.TypeAdapter(ColorFunction).validate_python(config)
+        cfunc = colorfunc_from_config(config)
+
+        image = _image_from_cfunc(cfunc, size=(200, 200))
+
+        compare_ref_image(image)
+
+
 class TestUniformNoiseCFunc:
     @pytest.mark.parametrize("seed", [0, 42])
     def test_basic(self, compare_ref_image, seed):

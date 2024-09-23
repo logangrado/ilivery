@@ -181,6 +181,15 @@ class SimplexNoiseCFunc(BaseModel):
     range: pydantic.conlist(float, min_length=2, max_length=2) = [0, 1]
 
 
+class VoronoiCFunc(BaseModel):
+    type: Literal["VORONOI"]
+    seed: int = 0
+    spacing: int
+    levels: Union[int, List[float]]
+    anisotropy: float = 1
+    angle: float = 0
+
+
 class ComposedCFunc(BaseModel):
     """
     Composed color function. Allows combining multiple color functions into one, such as a gradient
@@ -200,6 +209,7 @@ ColorFunction = Annotated[
         GradientCFunc,
         RandomUniformCFunc,
         SimplexNoiseCFunc,
+        VoronoiCFunc,
         ComposedCFunc,
     ],
     pydantic.Discriminator("type"),

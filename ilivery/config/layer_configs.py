@@ -186,8 +186,29 @@ class PatternLayer(BaseModel):
         edgewidth: int = 0
         spacing: int = 0
 
+    class HexagonPattern(BaseModel):
+        type: Literal["HEXAGONS"]
+        hexagon_size: int
+        angle: float = 0
+        facecolor: Optional[Color] = None
+        face_cmap: Optional[ColorMap] = None
+        face_cfunc: Optional[ColorFunction] = None
+        edgecolor: Optional[Color] = None
+        facespec: Optional[Spec] = None
+        facespec_cmap: Optional[ColorMap] = None
+        facespec_cfunc: Optional[ColorFunction] = None
+        edgespec: Optional[Spec] = None
+        edgewidth: int = 0
+        spacing: int = 0
+
     type: Literal["PATTERN"]
-    pattern: TrianglePattern
+    pattern: Annotated[
+        Union[
+            TrianglePattern,
+            HexagonPattern,
+        ],
+        pydantic.Discriminator("type"),
+    ]
 
 
 ## ==================================

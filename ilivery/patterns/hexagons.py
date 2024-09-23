@@ -45,7 +45,7 @@ def _get_hex_verticies(row, size, angle=0):
     return verts
 
 
-def _get_hex_grid(size, hex_size, angle, spacing):
+def _get_hex_grid(size, hexagon_size, angle, spacing):
     """
     Get a list of hexagon centers in grid
     """
@@ -55,8 +55,8 @@ def _get_hex_grid(size, hex_size, angle, spacing):
     square_size = max(size) * np.sqrt(2)
 
     # Determine number of hexagons in x/y directions
-    n_x = int(square_size / (1.5 * hex_size)) + 2
-    n_y = int(square_size / (np.sqrt(3) / 4 * hex_size)) + 2
+    n_x = int(square_size / (1.5 * hexagon_size)) + 2
+    n_y = int(square_size / (np.sqrt(3) / 4 * hexagon_size)) + 2
 
     out = pd.DataFrame([[i, j] for i in range(-n_x, n_x) for j in range(-n_y, n_y)], columns=["i", "j"])
 
@@ -65,44 +65,51 @@ def _get_hex_grid(size, hex_size, angle, spacing):
 
     # Rotate/scale grid
     out[["x", "y"]] = _transform_shape(
-        verts=np.array(out[["x", "y"]]), scale=(hex_size + spacing), xy=(0, 0), angle=angle
+        verts=np.array(out[["x", "y"]]), scale=(hexagon_size + spacing), xy=(0, 0), angle=angle
     )
 
     # Prune grid
-    x_min, x_max = [-hex_size, size[0] + hex_size]
-    y_min, y_max = [-hex_size, size[1] + hex_size]
+    x_min, x_max = [-hexagon_size, size[0] + hexagon_size]
+    y_min, y_max = [-hexagon_size, size[1] + hexagon_size]
 
     out = out[(out["x"] > x_min) & (out["x"] < x_max) & (out["y"] > y_min) & (out["y"] < y_max)].reset_index(drop=True)
 
     return out[["x", "y"]]
 
 
-@param_groups(exclusive=["color", "cmap"])
 def hexagons(
-    hex_size,
+    hexagon_size,
     size,
-    angle,
-    color=None,
-    cmap=None,
-    cfunc=None,
+    angle=0,
+    face_cmap=None,
+    face_cfunc=None,
+    facecolor=None,
     edgecolor=None,
-    edgewidth=0,
     spacing=0,
+    edgewidth=None,
     facespec=None,
+    facespec_cmap=None,
+    facespec_cfunc=None,
     edgespec=None,
+    c_min=0,
+    c_max=1,
 ):
     # Generate poly grid
-    poly_grid = _get_hex_grid(size=size, hex_size=hex_size, angle=angle, spacing=spacing)
-    poly_grid["verts"] = poly_grid.apply(_get_hex_verticies, axis=1, size=hex_size, angle=angle)
+    poly_grid = _get_hex_grid(size=size, hexagon_size=hexagon_size, angle=angle, spacing=spacing)
+    poly_grid["verts"] = poly_grid.apply(_get_hex_verticies, axis=1, size=hexagon_size, angle=angle)
 
     return poly_pattern(
         size=size,
         poly_df=poly_grid,
-        color=color,
-        cmap=cmap,
-        cfunc=cfunc,
+        facecolor=facecolor,
+        face_cmap=face_cmap,
+        face_cfunc=face_cfunc,
         edgecolor=edgecolor,
         edgewidth=edgewidth,
         facespec=facespec,
+        facespec_cmap=facespec_cmap,
+        facespec_cfunc=facespec_cfunc,
         edgespec=edgespec,
+        c_min=c_min,
+        c_max=c_max,
     )
