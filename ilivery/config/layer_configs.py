@@ -150,6 +150,25 @@ class PatchLayer(BaseModel):
     mirror_vertices: Optional[MirrorConfig] = None
 
 
+class StripeLayer(BaseModel):
+    class MirrorConfig(BaseModel):
+        axis: Literal["x", "y"]
+        offset: int = 0
+
+    type: Literal["STRIPE"]
+    path: List[pydantic.conlist(int, min_length=2, max_length=2)]
+
+    # vertices: List[pydantic.conlist(int, min_length=2, max_length=2)]
+    facecolor: Color
+    edgecolor: Color
+    facespec: Spec
+    edgespec: Spec
+    edgewidth: int
+    # radii: Optional[List[int] | int] = None
+    # mirror_patch: Optional[MirrorConfig] = None
+    # mirror_vertices: Optional[MirrorConfig] = None
+
+
 class PatternLayer(BaseModel):
     """Pattern layer"""
 
@@ -221,6 +240,7 @@ LayerConfig = Annotated[
         TextureLayer,
         ClassDecalLayer,
         PatchLayer,
+        StripeLayer,
     ],
     pydantic.Discriminator("type"),
 ]
