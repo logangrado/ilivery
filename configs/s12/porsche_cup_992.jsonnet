@@ -1,3 +1,6 @@
+local decal_function = import 'decals.libsonnet';
+local logo_function = import 'logos.libsonnet';
+
 local vector_add(points, offset) =
   std.map(
     function(point)
@@ -19,6 +22,11 @@ local vector_add(points, offset) =
     accent_colors[1],
     accent_colors[2],
   ],
+  local logo_colors = [
+    accent_colors[0],
+    accent_colors[1],
+  ],
+
   local body_spec = 'METALLIC',
   local section_spec = 'MATTE',
   local section_edgespec = 'CHROME',
@@ -147,6 +155,7 @@ local vector_add(points, offset) =
     {
       section: 'segments.body',
       layers: [
+        // Main sideskirt patch
         {
           local w = 800,
           local h = 100,
@@ -167,6 +176,7 @@ local vector_add(points, offset) =
             axis: 'x',
           },
         },
+        // Front patch
         {
           type: 'PATCH',
           vertices: vector_add([
@@ -192,19 +202,6 @@ local vector_add(points, offset) =
         {
           type: 'PATCH',
           vertices: vector_add([
-            [400, 0],
-            [450, -300],
-          ], [0, 30]),
-          facecolor: colors[0],
-          edgecolor: colors[0],
-          facespec: section_spec,
-          edgespec: section_edgespec,
-          edgewidth: 0,
-          mirror_vertices: { axis: 'y' },
-        },
-        {
-          type: 'PATCH',
-          vertices: vector_add([
             [0, -20],
             [370, -25],
             [580, -70],
@@ -223,103 +220,19 @@ local vector_add(points, offset) =
         },
       ],
     },
-
-    // DECALS
-    // ===================================
-    // Body decals
     {
-      section: 'segments.body',
+      section: 'segments.rear_bumper',
       layers: [
         {
-          type: 'DECAL',
-          decal: {
-            type: 'NAMED',
-            name: decal.name,
-            color: decal.color,
-            spec: decal_spec,
-            size: decal.size,
-          },
-          pos: decal.pos,
-          mirror: {
-            axis: 'x',
-            rotate: true,
-          },
-        }
-        for decal in body_decals
-      ] + [
-        {
-          type: 'DECAL',
-          decal: {
-            type: 'LOGO',
-            facecolor: accent_colors[0],
-            edgecolor: accent_colors[1],
-            facespec: logo_spec,
-            edgespec: logo_spec,
-            edgeratio: 0.1,
-            size: 250,
-          },
-          pos: [160, -500],
-          mirror: {
-            axis: 'x',
-            rotate: true,
-          },
+          type: 'SOLID',
+          color: colors[0],
+          spec: body_spec,
         },
-        {
-          type: 'DECAL',
-          decal: {
-            type: 'LOGO',
-            facecolor: accent_colors[0],
-            edgecolor: accent_colors[1],
-            facespec: logo_spec,
-            edgespec: logo_spec,
-            edgeratio: 0.1,
-            size: 300,
-          },
-          pos: [-430, -15],
-          rotate: -90,
-        },
-
       ],
     },
-    // Rear decals
     {
       section: 'segments.rear_0',
       layers: [
-        {
-          type: 'DECAL',
-          decal: {
-            type: 'NAMED',
-            name: 'maasr',
-            color: decal_colors[1],
-            spec: decal_spec,
-            size: [null, 45],
-          },
-          pos: [0, -10],
-        },
-        {
-          type: 'DECAL',
-          decal: {
-            type: 'NAMED',
-            name: 'LT/lt',
-            color: decal_colors[0],
-            spec: decal_spec,
-            size: [100, 100],
-          },
-          rotate: -5,
-          pos: [440, -20],
-        },
-        {
-          type: 'DECAL',
-          decal: {
-            type: 'NAMED',
-            name: 'LT/lt',
-            color: decal_colors[0],
-            spec: decal_spec,
-            size: [100, 100],
-          },
-          rotate: 5,
-          pos: [-440, -20],
-        },
         {
           type: 'DECAL',
           decal: {
@@ -335,60 +248,6 @@ local vector_add(points, offset) =
         },
       ],
     },
-    {
-      section: 'segments.windshield_outside',
-      layers: [
-        {
-          type: 'DECAL',
-          decal: {
-            type: 'NAMED',
-            name: 'porsche',
-            color: decal_colors[1],
-            spec: decal_spec,
-            size: [400, 70],
-          },
-          pos: [0, 0],
-          rotate: 270,
-        },
-      ],
-    },
-    // Wing decals
-    {
-      layers: [
-        {
-          type: 'CLASS_DECAL',
-          class_name: 's12/pro',
-          spec: 'MATTE',
-        },
-      ],
-    },
-    {
-      section: 'segments.wing',
-      layers: [
-        {
-          type: 'DECAL',
-          decal: {
-            type: 'NAMED',
-            name: 'text_grado_porsche',
-            color: decal_colors[1],
-            spec: decal_spec,
-            size: [null, 70],
-          },
-          pos: [0, -100],
-          rotate: 180,
-        },
-        {
-          type: 'DECAL',
-          decal: {
-            type: 'NAMED',
-            name: 'text_grado_porsche',
-            color: decal_colors[1],
-            spec: decal_spec,
-            size: [null, 70],
-          },
-          pos: [0, 55],
-        },
-      ],
-    },
-  ],
+  ] + decal_function(decal_colors, decal_spec)
+  + logo_function(logo_colors[0], logo_colors[1], decal_spec)
 }
