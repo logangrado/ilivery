@@ -9,7 +9,7 @@ from ilivery.config import layer_configs
 import pytest
 
 
-class TestPatchLayer:
+class TestStripeLayer:
     def test_basic(self, compare_ref_layer):
         config = {
             "type": "STRIPE",
@@ -28,7 +28,27 @@ class TestPatchLayer:
         config = pydantic.TypeAdapter(layer_configs.LayerConfig).validate_python(config)
         layer = layer_from_config(config, size=(200, 200))
 
-        # layer.show()
+        compare_ref_layer(layer)
+
+    def test_radii(self, compare_ref_layer):
+        config = {
+            "type": "STRIPE",
+            "path": [
+                [0, 0],
+                [50, 0],
+                [50, 50],
+            ],
+            "facecolor": [255, 0, 0],
+            "edgecolor": [0, 255, 0],
+            "facespec": [0, 255, 0],
+            "edgespec": [0, 0, 255],
+            "edgewidth": 2,
+            "radii": [0, 20, 2],
+        }
+
+        config = pydantic.TypeAdapter(layer_configs.LayerConfig).validate_python(config)
+        layer = layer_from_config(config, size=(200, 200))
+
         compare_ref_layer(layer)
 
     # def test_radii_single(self, compare_ref_layer):

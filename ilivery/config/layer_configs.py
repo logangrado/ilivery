@@ -164,7 +164,7 @@ class StripeLayer(BaseModel):
     facespec: Spec
     edgespec: Spec
     edgewidth: int
-    # radii: Optional[List[int] | int] = None
+    radii: Optional[List[int] | int] = None
     # mirror_patch: Optional[MirrorConfig] = None
     # mirror_vertices: Optional[MirrorConfig] = None
 
