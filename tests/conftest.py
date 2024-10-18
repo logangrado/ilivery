@@ -10,6 +10,10 @@ def pytest_addoption(parser):
         "--update-ref-layers",
         action="store_true",
     )
+    parser.addoption(
+        "--show",
+        action="store_true",
+    )
 
 
 def _add_grid(image, grid_spacing: int, center_line_thickness: int = 3, alpha: float = 0.8):
@@ -71,6 +75,9 @@ def compare_ref_layer(request, test_id):
 
         path = REF_BASE_PATH / test_id
 
+        if request.config.getoption("show"):
+            layer.show()
+
         if request.config.getoption("update_ref_layers"):
             layer.save(path, overwrite=True)
         else:
@@ -90,6 +97,9 @@ def compare_ref_image(request, test_id):
 
         path = REF_BASE_PATH / test_id
         path = path.with_suffix(path.suffix + ".png")
+
+        if request.config.getoption("show"):
+            image.show()
 
         if request.config.getoption("update_ref_layers"):
             path.parent.mkdir(exist_ok=True, parents=True)

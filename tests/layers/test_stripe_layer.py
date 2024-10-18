@@ -18,6 +18,7 @@ class TestStripeLayer:
                 [50, 0],
                 [50, 50],
             ],
+            "width": 10,
             "facecolor": [255, 0, 0],
             "edgecolor": [0, 255, 0],
             "facespec": [0, 255, 0],
@@ -38,6 +39,7 @@ class TestStripeLayer:
                 [50, 0],
                 [50, 50],
             ],
+            "width": 10,
             "facecolor": [255, 0, 0],
             "edgecolor": [0, 255, 0],
             "facespec": [0, 255, 0],
@@ -58,8 +60,71 @@ class TestStripeLayer:
                 [-50, -50],
                 [0, -50],
                 [50, 0],
-                # [90, 90],
             ],
+            "width": [10, 20],
+            "facecolor": [255, 0, 0],
+            "edgecolor": [0, 255, 0],
+            "facespec": [0, 255, 0],
+            "edgespec": [0, 0, 255],
+            "edgewidth": 2,
+        }
+
+        config = pydantic.TypeAdapter(layer_configs.LayerConfig).validate_python(config)
+        layer = layer_from_config(config, size=(200, 200))
+
+        compare_ref_layer(layer)
+
+    def test_widths(self, compare_ref_layer):
+        config = {
+            "type": "STRIPE",
+            "path": [
+                [-50, -50],
+                [0, -50],
+                [0, 0],
+            ],
+            "width": [10, 20],
+            "facecolor": [255, 0, 0],
+            "edgecolor": [0, 255, 0],
+            "facespec": [0, 255, 0],
+            "edgespec": [0, 0, 255],
+            "edgewidth": 2,
+        }
+
+        config = pydantic.TypeAdapter(layer_configs.LayerConfig).validate_python(config)
+        layer = layer_from_config(config, size=(200, 200))
+
+        compare_ref_layer(layer)
+
+    def test_widths_mixed(self, compare_ref_layer):
+        config = {
+            "type": "STRIPE",
+            "path": [
+                [-50, -50],
+                [0, -50],
+                [0, 0],
+            ],
+            "width": [10, [10, 20]],
+            "facecolor": [255, 0, 0],
+            "edgecolor": [0, 255, 0],
+            "facespec": [0, 255, 0],
+            "edgespec": [0, 0, 255],
+            "edgewidth": 2,
+        }
+
+        config = pydantic.TypeAdapter(layer_configs.LayerConfig).validate_python(config)
+        layer = layer_from_config(config, size=(200, 200))
+
+        compare_ref_layer(layer)
+
+    def test_widths_dense(self, compare_ref_layer):
+        config = {
+            "type": "STRIPE",
+            "path": [
+                [-50, -50],
+                [0, -50],
+                [0, 0],
+            ],
+            "width": [[10, 5], [10, 20]],
             "facecolor": [255, 0, 0],
             "edgecolor": [0, 255, 0],
             "facespec": [0, 255, 0],
