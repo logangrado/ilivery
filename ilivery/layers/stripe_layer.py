@@ -218,86 +218,6 @@ def _compute_verticies(points, radii, width):
     vertices = np.vstack((verts_l, verts_r[::-1]))
     radii = np.concatenate([radii_l, radii_r[::-1]])
 
-    # import matplotlib as mpl
-
-    # mpl.use("qt5agg")
-    # import matplotlib.pyplot as plt
-
-    # print(x)
-    # x = x.reshape(-1, 2)
-    # fig, ax = plt.subplots()
-    # ax.scatter(points[:, 0], points[:, 1], color="C0")
-    # ax.scatter(x[:, 0], x[:, 1], color="C2")
-    # ax.scatter(vertices[:, 0], vertices[:, 1], color="C1")
-    # plt.show()
-    # import ipdb
-
-    # ipdb.set_trace()
-    # pass
-    return vertices, radii
-
-    for i in range(N):
-        # Compute directions for segments before and after the current point
-        # This is the direction from the _center_, not accounting for varying widths
-        if i == 0:
-            # First point, use the segment to the next point
-            direction_next = points[i + 1] - points[i]
-            direction_prev = direction_next  # Duplicate for consistent handling
-        elif i == N - 1:
-            # Last point, use the segment from the previous point
-            direction_prev = points[i] - points[i - 1]
-            direction_next = direction_prev  # Duplicate for consistent handling
-        else:
-            # Middle points, use segments to next and from previous points
-            direction_prev = points[i] - points[i - 1]
-            direction_next = points[i + 1] - points[i]
-
-        # Normalize directions
-        direction_prev /= np.linalg.norm(direction_prev)
-        direction_next /= np.linalg.norm(direction_next)
-
-        # Compute perpendicular directions to left for both segments
-        perp_prev = np.array([-direction_prev[1], direction_prev[0]])
-        perp_next = np.array([-direction_next[1], direction_next[0]])
-
-        if i == 0:
-            verts_l[i] = points[i] + width[0][0] / 2 * perp_next
-            verts_r[i] = points[i] - width[0][0] / 2 * perp_next
-            radii_l[i] = radii[i]
-            radii_r[i] = radii[i]
-
-        elif i == N - 1:
-            verts_l[i] = points[i] + width[-1][1] / 2 * perp_prev
-            verts_r[i] = points[i] - width[-1][1] / 2 * perp_prev
-            radii_l[i] = radii[i]
-            radii_r[i] = radii[i]
-
-        else:
-            import ipdb
-
-            ipdb.set_trace()
-            pass
-            incoming_l = points[i] + width[i] / 2 * perp_prev
-            incoming_r = points[i] - width[i] / 2 * perp_prev
-            outgoing_l = points[i] + width[i] / 2 * perp_next
-            outgoing_r = points[i] - width[i] / 2 * perp_next
-
-            # Compute intersection point for right/left sides
-            verts_l[i] = _compute_intersection(incoming_l, direction_prev, outgoing_l, direction_next)
-            verts_r[i] = _compute_intersection(incoming_r, direction_prev, outgoing_r, direction_next)
-
-            if radii[i] != 0:
-                # Need to adjust radii according to the width at the turning point. Radii should be
-                # Determine direction we are turning in. Positive is left, negative is right
-                angle = _compute_angle(direction_prev, direction_next)
-                radii_l[i] = np.max(radii[i] - np.sign(angle) * width[i] / 2, 0)
-                radii_r[i] = np.max(radii[i] + np.sign(angle) * width[i] / 2, 0)
-
-    # Combine left and right vertices in counter-clockwise order
-    vertices = np.vstack((verts_l, verts_r[::-1]))
-
-    radii = np.concatenate([radii_l, radii_r[::-1]])
-
     return vertices, radii
 
 
@@ -320,16 +240,16 @@ def stripe_layer(config, size):
     decal = _build_patch(size, vertices=vertices, radii=radii, **kwargs)
     layer = layer.flatten(decal)
 
-    # if config.mirror_patch:
-    #     reflect = [-1, 1]
-    #     offset = [config.mirror_patch.offset, 0]
-    #     if config.mirror_patch.axis == "x":
-    #         reflect = reflect[::-1]
-    #         offset = offset[::-1]
+    if config.mirror_patch:
+        reflect = [-1, 1]
+        offset = [config.mirror_patch.offset, 0]
+        if config.mirror_patch.axis == "x":
+            reflect = reflect[::-1]
+            offset = offset[::-1]
 
-    #     vertices = (vertices - offset) * reflect + offset
+        vertices = (vertices - offset) * reflect + offset
 
-    #     decal = _build_patch(size, vertices=vertices, radii=radii, **kwargs)
-    #     layer = layer.flatten(decal)
+        decal = _build_patch(size, vertices=vertices, radii=radii, **kwargs)
+        layer = layer.flatten(decal)
 
     return layer

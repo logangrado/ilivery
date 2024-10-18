@@ -137,6 +137,30 @@ class TestStripeLayer:
 
         compare_ref_layer(layer)
 
+    def test_mirror(self, compare_ref_layer):
+        config = {
+            "type": "STRIPE",
+            "path": [
+                [0, 30],
+                [50, 30],
+            ],
+            "width": 5,
+            "facecolor": [255, 0, 0],
+            "edgecolor": [0, 255, 0],
+            "facespec": [0, 255, 0],
+            "edgespec": [0, 0, 255],
+            "edgewidth": 1,
+            "mirror_patch": {
+                "axis": "x",
+                "offset": 5,
+            },
+        }
+
+        config = pydantic.TypeAdapter(layer_configs.LayerConfig).validate_python(config)
+        layer = layer_from_config(config, size=(200, 200))
+
+        compare_ref_layer(layer)
+
     # def test_radii_single(self, compare_ref_layer):
     #     config = {
     #         "type": "PATCH",

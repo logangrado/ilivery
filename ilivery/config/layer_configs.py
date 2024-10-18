@@ -158,14 +158,14 @@ class StripeLayer(BaseModel):
     type: Literal["STRIPE"]
     path: List[pydantic.conlist(int, min_length=2, max_length=2)]
     width: Union[int, List[Union[int, List[int]]]]
-    # vertices: List[pydantic.conlist(int, min_length=2, max_length=2)]
+
     facecolor: Color
     edgecolor: Color
     facespec: Spec
     edgespec: Spec
     edgewidth: int
     radii: Optional[List[int] | int] = None
-    # mirror_patch: Optional[MirrorConfig] = None
+    mirror_patch: Optional[MirrorConfig] = None
     # mirror_vertices: Optional[MirrorConfig] = None
 
 
