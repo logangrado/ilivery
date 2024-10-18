@@ -136,11 +136,12 @@ def _compute_verticies(points, radii, width):
             verts_l[i] = _compute_intersection(incoming_l, direction_prev, outgoing_l, direction_next)
             verts_r[i] = _compute_intersection(incoming_r, direction_prev, outgoing_r, direction_next)
 
-            # Need to adjust radii according to the width at the turning point. Radii should be
-            # Determine direction we are turning in. Positive is left, negative is right
-            angle = _compute_angle(direction_prev, direction_next)
-            radii_l[i] = np.min(radii[i] - np.sign(angle) * width[i] / 2, 0)
-            radii_r[i] = np.min(radii[i] + np.sign(angle) * width[i] / 2, 0)
+            if radii[i] != 0:
+                # Need to adjust radii according to the width at the turning point. Radii should be
+                # Determine direction we are turning in. Positive is left, negative is right
+                angle = _compute_angle(direction_prev, direction_next)
+                radii_l[i] = np.max(radii[i] - np.sign(angle) * width[i] / 2, 0)
+                radii_r[i] = np.max(radii[i] + np.sign(angle) * width[i] / 2, 0)
 
     # Combine left and right vertices in counter-clockwise order
     vertices = np.vstack((verts_l, verts_r[::-1]))
