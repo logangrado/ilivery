@@ -1,4 +1,4 @@
-function(logo_facecolor, logo_edgecolor, spec) [{
+function(logo_facecolor, logo_edgecolor, spec, edgespec, edgeratio=0.1) [{
       section: "segments.body",
       layers: [
         {
@@ -8,11 +8,11 @@ function(logo_facecolor, logo_edgecolor, spec) [{
             facecolor: logo_facecolor,
             edgecolor: logo_edgecolor,
             facespec: spec,
-            edgespec: spec,
-            edgeratio: 0.1,
-            size: 250,
+            edgespec: edgespec,
+            edgeratio: edgeratio,
+            size: 350,
           },
-          pos: [160, -500],
+          pos: [170, -500],
           mirror: {
             axis: 'x',
             rotate: true,
@@ -25,11 +25,11 @@ function(logo_facecolor, logo_edgecolor, spec) [{
             facecolor: logo_facecolor,
             edgecolor: logo_edgecolor,
             facespec: spec,
-            edgespec: spec,
-            edgeratio: 0.1,
+            edgespec: edgespec,
+            edgeratio: edgeratio,
             size: 300,
           },
-          pos: [-430, -15],
+          pos: [-430, 0],
           rotate: -90,
         },
       ]

@@ -1,30 +1,30 @@
 function(decal_colors, decal_spec) [
   {
     local body_decals = [
-    {
-        name: 'maasr',
-        size: [null, 40],
-        pos: [-60, -580],
-        color: decal_colors[1],
-    },
-    {
-        name: 'fanatec',
-        size: [null, 20],
-        pos: [-70, -640],
-        color: decal_colors[0],
-    },
-    {
-        name: 'LT/lt_long',
-        size: [null, 30],
-        pos: [150, -635],
-        color: decal_colors[0],
-    },
-    {
-        name: 'podium',
-        size: [null, 30],
-        pos: [320, -630],
-        color: decal_colors[0],
-    },
+    // {
+    //     name: 'maasr',
+    //     size: [null, 40],
+    //     pos: [-60, -580],
+    //     color: decal_colors[1],
+    // },
+    // {
+    //     name: 'fanatec',
+    //     size: [null, 20],
+    //     pos: [-70, -640],
+    //     color: decal_colors[0],
+    // },
+    // {
+    //     name: 'LT/lt_long',
+    //     size: [null, 30],
+    //     pos: [150, -635],
+    //     color: decal_colors[0],
+    // },
+    // {
+    //     name: 'podium',
+    //     size: [null, 30],
+    //     pos: [320, -630],
+    //     color: decal_colors[0],
+    // },
     ],
     section: 'segments.body',
     layers: [
