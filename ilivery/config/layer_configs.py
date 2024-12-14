@@ -139,7 +139,9 @@ class PatchLayer(BaseModel):
         offset: int = 0
 
     type: Literal["PATCH"]
-    vertices: List[pydantic.conlist(int, min_length=2, max_length=2)]
+    # vertices: List[pydantic.conlist(int, min_length=2, max_length=2)]
+    vertices: List
+    vert_path: bool = False
     facecolor: Color
     edgecolor: Color
     facespec: Spec
