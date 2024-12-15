@@ -47,34 +47,14 @@ def _build_patch(size, vertices, radii, facecolor, edgecolor, facespec, edgespec
 
     return decal_layer
 
-def _verts_from_path(vert_path):
-    """Convert vert path to vertices"""
-    verts = [vert_path[0]]
-    direction = np.array([1,0])
-    for item in vert_path[1:]:
-        if len(item) == 2:
-            angle, distance = item
-        else:
-            angle, distance, abs_rel = item
-            assert abs_rel.upper() == 'ABS'
-            direction = np.array([1,0])
-
-        theta = np.pi * angle/180
-        rot_matrix = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
-
-        direction = direction @ rot_matrix
-
-        verts.append(verts[-1] + direction * distance)
-
-    return np.array(verts)
 
 def patch_layer(config, size):
     layer = Layer(size)
 
-    if config.vert_path:
-        vertices = _verts_from_path(config.vertices)
-    else:
+    if config.vertices:
         vertices = np.array(config.vertices)
+    elif config.vertex_path:
+        vertices = utils.linalg.verts_from_path(config.vertex_path)
 
     radii = config.radii
     if radii is None:

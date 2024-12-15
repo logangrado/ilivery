@@ -9,6 +9,7 @@ import re
 import pydantic
 
 from ilivery.config.base_model import BaseModel
+from ilivery.config import validators
 from ilivery.config.color_configs import Color, Spec, ColorMap, ColorFunction
 
 
@@ -139,8 +140,8 @@ class PatchLayer(BaseModel):
         offset: int = 0
 
     type: Literal["PATCH"]
-    # vertices: List[pydantic.conlist(int, min_length=2, max_length=2)]
-    vertices: List
+    vertices: Optional[List[pydantic.conlist(int, min_length=2, max_length=2)]] = None
+    vertex_path: Optional[List[pydantic.conlist(Union[int, str], min_length=2, max_length=3)]] = None
     vert_path: bool = False
     facecolor: Color
     edgecolor: Color
@@ -151,6 +152,8 @@ class PatchLayer(BaseModel):
     mirror_patch: Optional[MirrorConfig] = None
     mirror_vertices: Optional[MirrorConfig] = None
 
+    _oneof = validators.oneof(["vertices", "vertex_path"])
+
 
 class StripeLayer(BaseModel):
     class MirrorConfig(BaseModel):
@@ -158,7 +161,8 @@ class StripeLayer(BaseModel):
         offset: int = 0
 
     type: Literal["STRIPE"]
-    path: List[pydantic.conlist(int, min_length=2, max_length=2)]
+    vertices: Optional[List[pydantic.conlist(int, min_length=2, max_length=2)]] = None
+    vertex_path: Optional[List[pydantic.conlist(Union[int, str], min_length=2, max_length=3)]] = None
     width: Union[int, List[Union[int, List[int]]]]
 
     facecolor: Color
@@ -169,6 +173,9 @@ class StripeLayer(BaseModel):
     radii: Optional[List[int] | int] = None
     mirror_patch: Optional[MirrorConfig] = None
     # mirror_vertices: Optional[MirrorConfig] = None
+
+    _oneof = validators.oneof(["vertices", "vertex_path"])
+
 
 class PatternLayer(BaseModel):
     """Pattern layer"""
@@ -232,9 +239,10 @@ class PatternLayer(BaseModel):
 
 
 class PSDLayer(BaseModel):
-    type: Literal['PSD']
+    type: Literal["PSD"]
     layer_name: str
     spec: Optional[Spec] = None
+
 
 ## ==================================
 

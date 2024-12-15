@@ -224,7 +224,12 @@ def _compute_verticies(points, radii, width):
 def stripe_layer(config, size):
     layer = Layer(size)
 
-    vertices, radii = _compute_verticies(config.path, config.radii, width=config.width)
+    if config.vertex_path:
+        vertices = utils.linalg.verts_from_path(config.vertex_path)
+    else:
+        vertices = np.array(config.vertices)
+
+    vertices, radii = _compute_verticies(vertices, config.radii, width=config.width)
 
     # if config.mirror_vertices:
     #     vertices, radii = _mirror_verts(vertices, radii, config.mirror_vertices)

@@ -1,1 +1,1 @@
-from . import img, color, mpl, psd, os
+from . import img, color, mpl, psd, os, linalg

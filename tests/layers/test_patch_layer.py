@@ -143,15 +143,16 @@ class TestPatchLayer:
         layer = layer_from_config(config, size=(200, 200))
 
         compare_ref_layer(layer)
+
     def test_vert_path(self, compare_ref_layer):
         config = {
             "type": "PATCH",
-            "vertices": [
+            "vertex_path": [
                 [0, 0],
                 [-90, 50],
                 [-135, 50],
             ],
-            "vert_path":True,
+            "vert_path": True,
             "facecolor": [255, 0, 0],
             "edgecolor": [0, 255, 0],
             "facespec": [0, 255, 0],
@@ -163,16 +164,16 @@ class TestPatchLayer:
         layer = layer_from_config(config, size=(200, 200))
 
         compare_ref_layer(layer)
+
     def test_vert_path_abs(self, compare_ref_layer):
         config = {
             "type": "PATCH",
-            "vertices": [
+            "vertex_path": [
                 [0, 0],
                 [-90, 50],
                 [-135, 50],
-                [90, 50, 'ABS'],
+                [90, 50, "ABS"],
             ],
-            "vert_path":True,
             "facecolor": [255, 0, 0],
             "edgecolor": [0, 255, 0],
             "facespec": [0, 255, 0],
