@@ -170,7 +170,6 @@ class StripeLayer(BaseModel):
     mirror_patch: Optional[MirrorConfig] = None
     # mirror_vertices: Optional[MirrorConfig] = None
 
-
 class PatternLayer(BaseModel):
     """Pattern layer"""
 
@@ -232,6 +231,11 @@ class PatternLayer(BaseModel):
     ]
 
 
+class PSDLayer(BaseModel):
+    type: Literal['PSD']
+    layer_name: str
+    spec: Optional[Spec] = None
+
 ## ==================================
 
 LayerConfig = Annotated[
@@ -242,6 +246,7 @@ LayerConfig = Annotated[
         TextureLayer,
         ClassDecalLayer,
         PatchLayer,
+        PSDLayer,
         StripeLayer,
     ],
     pydantic.Discriminator("type"),

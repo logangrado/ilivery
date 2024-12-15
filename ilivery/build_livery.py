@@ -75,6 +75,7 @@ class Livery:
 
         kwargs = {
             "template_path": self._template_path,
+            "template": self._template
         }
 
         for i, section_config in enumerate(self._config.sections):

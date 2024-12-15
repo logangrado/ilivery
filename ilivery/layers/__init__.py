@@ -9,6 +9,7 @@ from .class_decal_layer import class_decal_layer
 from .patch_layer import patch_layer
 from .pattern_layer import pattern_layer
 from .stripe_layer import stripe_layer
+from .psd_layer import psd_layer
 
 from ilivery.layer import Layer
 
@@ -20,6 +21,7 @@ _layer_dict = {
     "PATCH": patch_layer,
     "PATTERN": pattern_layer,
     "STRIPE": stripe_layer,
+    "PSD": psd_layer
 }
 
 
