@@ -160,3 +160,25 @@ class TestStripeLayer:
         layer = layer_from_config(config, size=(200, 200))
 
         compare_ref_layer(layer)
+
+    def test_tip_angles(self, compare_ref_layer):
+        config = {
+            "type": "STRIPE",
+            "vertices": [
+                [0, 0],
+                [50, 0],
+                [50, 50],
+            ],
+            "width": 10,
+            "facecolor": [255, 0, 0],
+            "edgecolor": [0, 255, 0],
+            "facespec": [0, 255, 0],
+            "edgespec": [0, 0, 255],
+            "edgewidth": 2,
+            "tip_angles": [30, 60],
+        }
+
+        config = pydantic.TypeAdapter(layer_configs.LayerConfig).validate_python(config)
+        layer = layer_from_config(config, size=(200, 200))
+
+        compare_ref_layer(layer)

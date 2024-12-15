@@ -8,6 +8,11 @@ def rotation_matrix(angle):
     return np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
 
 
+def rotate(vertices, angle):
+    """Rotate an (N,2) array of verticies"""
+    return (rotation_matrix(angle) @ vertices.T).T
+
+
 def verts_from_path(vert_path):
     """Convert vert path to vertices"""
     verts = [vert_path[0]]

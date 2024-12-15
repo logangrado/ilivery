@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from enum import Enum
-from typing import List, Union, Annotated, Optional
+from typing import List, Union, Annotated, Optional, Tuple
 from typing_extensions import Literal
 import re
 
@@ -164,6 +164,8 @@ class StripeLayer(BaseModel):
     vertices: Optional[List[pydantic.conlist(int, min_length=2, max_length=2)]] = None
     vertex_path: Optional[List[pydantic.conlist(Union[int, str], min_length=2, max_length=3)]] = None
     width: Union[int, List[Union[int, List[int]]]]
+
+    tip_angles: Optional[Tuple[int, int]] = None
 
     facecolor: Color
     edgecolor: Color

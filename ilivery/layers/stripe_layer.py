@@ -88,7 +88,7 @@ def _perp(x):
     return x @ np.array([[0, 1], [-1, 0]])
 
 
-def _compute_verticies(points, radii, width):
+def _compute_verticies(points, radii, width, tip_angles):
     """Compute the verticies for constructing a stripe with the following points and width
 
     Parameters
@@ -102,6 +102,9 @@ def _compute_verticies(points, radii, width):
     """
     points = np.asarray(points).astype(float)
     N = points.shape[0]
+
+    if tip_angles is None:
+        tip_angles = [0, 0]
 
     # Check if width is a constant or an array
     if isinstance(width, (int, float)):
@@ -151,15 +154,25 @@ def _compute_verticies(points, radii, width):
         point0 = points[i]
         point1 = points[i + 1]
 
+        d0, d1 = direction, direction
+        w0, w1 = width
+        if i == 0 and tip_angles[0] != 0:
+            d0 = utils.linalg.rotate(d0, tip_angles[0])
+            w0 /= np.cos(tip_angles[0] / 180 * np.pi)
+
+        if i == len(directions) - 1 and tip_angles[1] != 0:
+            d1 = utils.linalg.rotate(d1, tip_angles[1])
+            w1 /= np.cos(tip_angles[1] / 180 * np.pi)
+
         x.append(
             [
                 [
-                    point0 + _perp(direction) * width[0],
-                    point0 - _perp(direction) * width[0],
+                    point0 + _perp(d0) * w0,
+                    point0 - _perp(d0) * w0,
                 ],
                 [
-                    point1 + _perp(direction) * width[1],
-                    point1 - _perp(direction) * width[1],
+                    point1 + _perp(d1) * w1,
+                    point1 - _perp(d1) * w1,
                 ],
             ]
         )
@@ -229,7 +242,7 @@ def stripe_layer(config, size):
     else:
         vertices = np.array(config.vertices)
 
-    vertices, radii = _compute_verticies(vertices, config.radii, width=config.width)
+    vertices, radii = _compute_verticies(vertices, config.radii, width=config.width, tip_angles=config.tip_angles)
 
     # if config.mirror_vertices:
     #     vertices, radii = _mirror_verts(vertices, radii, config.mirror_vertices)
