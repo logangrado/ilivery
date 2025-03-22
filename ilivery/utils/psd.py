@@ -210,7 +210,7 @@ def get_section_mask(expression, template):
     return section_mask, bbox
 
 
-def load_layers(path, groups=None, size=(2048, 2048)):
+def load_layers(path, groups=None):
     logger.info(f"Loading PSD layers: {path}")
 
     cache_base_path, cache_paths, checksum = _get_cache_path_and_checksum(path)
@@ -228,6 +228,7 @@ def load_layers(path, groups=None, size=(2048, 2048)):
             shutil.rmtree(cache_base_path)
         psd = PSDImage.open(path)
 
+        size = psd.size
         _cache_psd_recursive(cache_paths["images"], psd, size)
         # Write checksum
         with open(cache_paths["checksum"], "w") as f:
