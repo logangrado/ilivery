@@ -168,6 +168,38 @@ class TestBuildLivery:
 
         compare_ref_layer(livery._livery)
 
+    def test_decal_sectioned_small_layer(self, compare_ref_layer):
+        config = {
+            "template": "test_template",
+            "sections": [
+                {
+                    "layers": [
+                        {
+                            "type": "SOLID",
+                            "color": [255, 0, 0],
+                            "spec": [0, 255, 0],
+                        }
+                    ],
+                },
+                {
+                    "section": "segments.small_layer",
+                    "layers": [
+                        {
+                            "type": "SOLID",
+                            "color": [0, 255, 0],
+                            "spec": [0, 0, 255],
+                        },
+                    ],
+                },
+            ],
+        }
+
+        config = LiveryConfig.model_validate(config)
+
+        livery = build_livery(config, no_cache=True)
+
+        compare_ref_layer(livery._livery)
+
 
 class TestBuildLiveryCaching:
     pass
