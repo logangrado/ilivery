@@ -1,9 +1,6 @@
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
-from ilivery import utils
 from ilivery.decorators import param_groups
 from ilivery.patterns.poly_pattern import poly_pattern
 

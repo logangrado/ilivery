@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
-#!/usr/bin/env python
-
 import numpy as np
 from matplotlib.path import Path
-from matplotlib.patches import PathPatch, Polygon
+from matplotlib.patches import PathPatch
 from matplotlib.transforms import Bbox, BboxTransformTo
-import matplotlib.pyplot as plt
 
 from ilivery import utils
 

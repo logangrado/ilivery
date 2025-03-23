@@ -8,7 +8,6 @@ from pathlib import Path
 
 from ilivery.layer import Layer
 from ilivery import TEMPLATE_DIR, LAYER_CACHE_DIR, utils
-from ilivery import utils
 from ilivery.layers import layer_from_config
 
 logger = logging.getLogger(__name__)
@@ -58,7 +57,7 @@ class Livery:
                         next_layer = i + 1
                         livery = Layer.load(layer_cache)
                         break
-                    except:
+                    except Exception:
                         print("Invalid cache")
                         shutil.rmtree(layer_cache)
 

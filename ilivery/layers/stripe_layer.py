@@ -3,7 +3,6 @@
 import numpy as np
 
 from ilivery.layer import Layer
-from ilivery.patches import poly_patch
 from ilivery import utils
 
 from .patch_layer import _build_patch

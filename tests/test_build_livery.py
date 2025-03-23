@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import pytest
 
 from ilivery.config.livery_config import LiveryConfig
 from ilivery.build_livery import build_livery

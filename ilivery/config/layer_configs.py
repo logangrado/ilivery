@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-from enum import Enum
 from typing import List, Union, Annotated, Optional, Tuple
 from typing_extensions import Literal
-import re
 
 
 import pydantic
@@ -13,8 +11,8 @@ from ilivery.config import validators
 from ilivery.config.color_configs import Color, Spec, ColorMap, ColorFunction
 
 
-## LAYERS
-## ==================================
+# LAYERS
+# ==================================
 
 
 class TextureLayer(BaseModel):
@@ -246,7 +244,7 @@ class PSDLayer(BaseModel):
     spec: Optional[Spec] = None
 
 
-## ==================================
+# ==================================
 
 LayerConfig = Annotated[
     Union[

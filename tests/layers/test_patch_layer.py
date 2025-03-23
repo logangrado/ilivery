@@ -2,7 +2,6 @@
 
 import pydantic
 
-from ilivery.layer import Layer
 from ilivery.layers import layer_from_config
 from ilivery.config import layer_configs
 
