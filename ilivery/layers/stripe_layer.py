@@ -57,6 +57,15 @@ def _compute_line_intersection(line1, line2):
     return (px, py)
 
 
+def _safe_cross(a, b):
+    """
+    Cross two 2d vectors. Promote to 3d and return 3rd component
+    """
+    a = np.concat([a, [0]])
+    b = np.concat([b, [0]])
+    return np.cross(a, b)[-1]
+
+
 def _compute_angle(a, b):
     a = a.reshape(-1)
     b = b.reshape(-1)
@@ -71,7 +80,7 @@ def _compute_angle(a, b):
     angle_radians = np.arccos(np.clip(cos_theta, -1.0, 1.0))
 
     # Compute cross product (only valid for 2D vectors)
-    cross_product = np.cross(a, b)
+    cross_product = _safe_cross(a, b)
 
     # Determine the sign of the angle based on the cross product
     if cross_product < 0:

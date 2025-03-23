@@ -19,6 +19,3 @@ TEMPLATE_DIR = RESOURCE_DIR / "templates"
 DECAL_DIR = RESOURCE_DIR / "decals"
 TEXTURE_DIR = RESOURCE_DIR / "textures"
 LAYER_CACHE_DIR = ROOT.parent / ".layer_cache"
-print(f"FILE: {__file__}")
-print(f"ROOT_DIR: {ROOT}")
-print(f"RESOURCE_DIR: {RESOURCE_DIR}")

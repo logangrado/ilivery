@@ -108,7 +108,7 @@ class VoronoiNoiseCFunc:
         y_range = (y.min(), y.max())
 
         # Determine how many points to generate
-        size = np.sqrt((np.diff(x_range) + 1) * (np.diff(y_range) + 1))
+        size = np.sqrt((np.diff(x_range) + 1) * (np.diff(y_range) + 1))[0]
         n_points = int((size / self._config.spacing) ** 2)
 
         # Generate random seed points
