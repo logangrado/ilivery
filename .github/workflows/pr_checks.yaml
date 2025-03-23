@@ -30,7 +30,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /venv
-          key: venv-${{ hashFiles('uv.lock') }}
+          key: venv # Don't both with hash, we only need one cache, let sync handle full sync
+          # key: venv-${{ hashFiles('uv.lock') }}
           restore-keys: |
             venv-
 
