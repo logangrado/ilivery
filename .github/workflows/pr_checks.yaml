@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: docker.io/grado/pdm:3.12-alpine
+      image: docker.io/grado/ilivery-cicd-uv-py3.12
 
     steps:
       - name: Check out repository
