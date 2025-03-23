@@ -19,13 +19,6 @@ jobs:
       - name: Mark repo as safe for Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: debug
-        run: |
-          set -x
-          pwd
-          ls
-          ls resources
-
       - name: Cache Python virtualenv
         uses: actions/cache@v4
         with:
@@ -45,4 +38,4 @@ jobs:
 
       - name: Run Tests
         run: |
-          uv run pytest tests --sw -s
+          uv run pytest tests
