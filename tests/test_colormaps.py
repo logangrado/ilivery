@@ -2,9 +2,7 @@
 
 import pydantic
 import numpy as np
-import matplotlib as mpl
 from PIL import Image
-import pytest
 
 from ilivery.config.color_configs import ColorMap
 from ilivery.colormaps import colormap_from_config

@@ -105,5 +105,11 @@ if __name__ == "__main__":
     e = (189, 22, 22, 255)
 
     logo_size = 512
-    img = logo(size=(logo_size, logo_size), facecolor=f, edgecolor=e, edgewidth=20, pad="CIRCLE")
+    img = logo(
+        size=(logo_size, logo_size),
+        facecolor=f,
+        edgecolor=e,
+        edgewidth=20,
+        pad="CIRCLE",
+    )
     img.show()

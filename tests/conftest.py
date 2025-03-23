@@ -10,6 +10,10 @@ def pytest_addoption(parser):
         "--update-ref-layers",
         action="store_true",
     )
+    parser.addoption(
+        "--show",
+        action="store_true",
+    )
 
 
 def _add_grid(image, grid_spacing: int, center_line_thickness: int = 3, alpha: float = 0.8):
@@ -48,7 +52,11 @@ def _add_grid(image, grid_spacing: int, center_line_thickness: int = 3, alpha: f
         draw.line([(0, y), (width, y)], fill=grid_color, width=1)
 
     # Draw the extra thick center lines
-    draw.line([(center_x, 0), (center_x, height)], fill=grid_color, width=center_line_thickness)
+    draw.line(
+        [(center_x, 0), (center_x, height)],
+        fill=grid_color,
+        width=center_line_thickness,
+    )
     draw.line([(0, center_y), (width, center_y)], fill=grid_color, width=center_line_thickness)
 
     return image
@@ -71,6 +79,9 @@ def compare_ref_layer(request, test_id):
 
         path = REF_BASE_PATH / test_id
 
+        if request.config.getoption("show"):
+            layer.show()
+
         if request.config.getoption("update_ref_layers"):
             layer.save(path, overwrite=True)
         else:
@@ -88,7 +99,11 @@ def compare_ref_image(request, test_id):
         if grid:
             image = _add_grid(image, grid)
 
-        path = (REF_BASE_PATH / test_id).with_suffix(".png")
+        path = REF_BASE_PATH / test_id
+        path = path.with_suffix(path.suffix + ".png")
+
+        if request.config.getoption("show"):
+            image.show()
 
         if request.config.getoption("update_ref_layers"):
             path.parent.mkdir(exist_ok=True, parents=True)

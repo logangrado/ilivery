@@ -8,7 +8,6 @@ from pathlib import Path
 
 from ilivery.layer import Layer
 from ilivery import TEMPLATE_DIR, LAYER_CACHE_DIR, utils
-from ilivery import utils
 from ilivery.layers import layer_from_config
 
 logger = logging.getLogger(__name__)
@@ -58,7 +57,7 @@ class Livery:
                         next_layer = i + 1
                         livery = Layer.load(layer_cache)
                         break
-                    except:
+                    except Exception:
                         print("Invalid cache")
                         shutil.rmtree(layer_cache)
 
@@ -73,9 +72,7 @@ class Livery:
             raise NotImplementedError("Cache not implemented!")
         livery, next_layer = self._load_latest_cached(no_cache=self._no_cache)
 
-        kwargs = {
-            "template_path": self._template_path,
-        }
+        kwargs = {"template_path": self._template_path, "template": self._template}
 
         for i, section_config in enumerate(self._config.sections):
             logger.info(f"SECTION [{i+1}/{len(self._config.sections)}]")

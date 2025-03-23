@@ -51,7 +51,11 @@ def _build_patch(size, vertices, radii, facecolor, edgecolor, facespec, edgespec
 def patch_layer(config, size):
     layer = Layer(size)
 
-    vertices = np.array(config.vertices)
+    if config.vertices:
+        vertices = np.array(config.vertices)
+    elif config.vertex_path:
+        vertices = utils.linalg.verts_from_path(config.vertex_path)
+
     radii = config.radii
     if radii is None:
         radii = 0

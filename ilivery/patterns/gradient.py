@@ -17,7 +17,13 @@ def _img_from_data(size, cmap, data):
 
     # fig,ax = utils.mpl.get_fig(size)
     fig, ax = plt.subplots()
-    ax.imshow(data, cmap=cmap, vmin=np.min(data), vmax=np.max(data), extent=(0, size[0], 0, size[1]))
+    ax.imshow(
+        data,
+        cmap=cmap,
+        vmin=np.min(data),
+        vmax=np.max(data),
+        extent=(0, size[0], 0, size[1]),
+    )
 
     utils.mpl.prep_ax(ax)
 

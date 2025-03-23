@@ -1,10 +1,6 @@
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
-from ilivery import utils
-from ilivery.decorators import param_groups
 from ilivery.patterns.poly_pattern import poly_pattern
 
 _tri_verts = np.array([[-0.5, -np.sqrt(3) / 4], [0.5, -np.sqrt(3) / 4], [0.0, np.sqrt(3) / 4]])
@@ -59,7 +55,10 @@ def _get_tri_grid(size, tri_size, angle, spacing):
 
     # Rotate/scale grid
     out[["x", "y"]] = _transform_shape(
-        verts=np.array(out[["x", "y"]]), scale=(tri_size + spacing), xy=(0, 0), angle=angle
+        verts=np.array(out[["x", "y"]]),
+        scale=(tri_size + spacing),
+        xy=(0, 0),
+        angle=angle,
     )
 
     # Prune grid

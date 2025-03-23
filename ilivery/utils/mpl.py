@@ -27,7 +27,11 @@ def get_fig(size):
 
 
 def fig_to_img(fig, size):
-    """Convert a Matplotlib figure to a PIL Image and return it"""
+    """
+    Convert a Matplotlib figure to a PIL Image and return it
+
+    Also close the figure
+    """
     buf = io.BytesIO()
 
     # Set the figure size, written out at 100DPI
@@ -35,6 +39,8 @@ def fig_to_img(fig, size):
     # fig.set_figheight(size[1] / 100)
 
     fig.savefig(buf, transparent=True)
+    plt.close(fig)
+
     buf.seek(0)
     img = Image.open(buf)
 

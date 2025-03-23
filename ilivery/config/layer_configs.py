@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 
-from enum import Enum
-from typing import List, Union, Annotated, Optional
+from typing import List, Union, Annotated, Optional, Tuple
 from typing_extensions import Literal
-import re
 
 
 import pydantic
 
 from ilivery.config.base_model import BaseModel
+from ilivery.config import validators
 from ilivery.config.color_configs import Color, Spec, ColorMap, ColorFunction
 
 
-## LAYERS
-## ==================================
+# LAYERS
+# ==================================
 
 
 class TextureLayer(BaseModel):
@@ -139,7 +138,9 @@ class PatchLayer(BaseModel):
         offset: int = 0
 
     type: Literal["PATCH"]
-    vertices: List[pydantic.conlist(int, min_length=2, max_length=2)]
+    vertices: Optional[List[pydantic.conlist(int, min_length=2, max_length=2)]] = None
+    vertex_path: Optional[List[pydantic.conlist(Union[int, str], min_length=2, max_length=3)]] = None
+    vert_path: bool = False
     facecolor: Color
     edgecolor: Color
     facespec: Spec
@@ -148,6 +149,32 @@ class PatchLayer(BaseModel):
     radii: Optional[List[int] | int] = None
     mirror_patch: Optional[MirrorConfig] = None
     mirror_vertices: Optional[MirrorConfig] = None
+
+    _oneof = validators.oneof(["vertices", "vertex_path"])
+
+
+class StripeLayer(BaseModel):
+    class MirrorConfig(BaseModel):
+        axis: Literal["x", "y"]
+        offset: int = 0
+
+    type: Literal["STRIPE"]
+    vertices: Optional[List[pydantic.conlist(int, min_length=2, max_length=2)]] = None
+    vertex_path: Optional[List[pydantic.conlist(Union[int, str], min_length=2, max_length=3)]] = None
+    width: Union[int, List[Union[int, List[int]]]]
+
+    tip_angles: Optional[Tuple[int, int]] = None
+
+    facecolor: Color
+    edgecolor: Color
+    facespec: Spec
+    edgespec: Spec
+    edgewidth: int
+    radii: Optional[List[int] | int] = None
+    mirror_patch: Optional[MirrorConfig] = None
+    # mirror_vertices: Optional[MirrorConfig] = None
+
+    _oneof = validators.oneof(["vertices", "vertex_path"])
 
 
 class PatternLayer(BaseModel):
@@ -186,11 +213,38 @@ class PatternLayer(BaseModel):
         edgewidth: int = 0
         spacing: int = 0
 
+    class HexagonPattern(BaseModel):
+        type: Literal["HEXAGONS"]
+        hexagon_size: int
+        angle: float = 0
+        facecolor: Optional[Color] = None
+        face_cmap: Optional[ColorMap] = None
+        face_cfunc: Optional[ColorFunction] = None
+        edgecolor: Optional[Color] = None
+        facespec: Optional[Spec] = None
+        facespec_cmap: Optional[ColorMap] = None
+        facespec_cfunc: Optional[ColorFunction] = None
+        edgespec: Optional[Spec] = None
+        edgewidth: int = 0
+        spacing: int = 0
+
     type: Literal["PATTERN"]
-    pattern: TrianglePattern
+    pattern: Annotated[
+        Union[
+            TrianglePattern,
+            HexagonPattern,
+        ],
+        pydantic.Discriminator("type"),
+    ]
 
 
-## ==================================
+class PSDLayer(BaseModel):
+    type: Literal["PSD"]
+    layer_name: str
+    spec: Optional[Spec] = None
+
+
+# ==================================
 
 LayerConfig = Annotated[
     Union[
@@ -200,6 +254,8 @@ LayerConfig = Annotated[
         TextureLayer,
         ClassDecalLayer,
         PatchLayer,
+        PSDLayer,
+        StripeLayer,
     ],
     pydantic.Discriminator("type"),
 ]

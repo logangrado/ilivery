@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  pr_checks:
+    image: docker.io/grado/ilivery-cicd-uv-py3.12
+    build:
+      context: ../
+      dockerfile: ./docker/dockerfile
+      platforms:
+        - linux/amd64
+    volumes:
+      - ../:/app
+    entrypoint: /bin/sh

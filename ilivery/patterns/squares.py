@@ -1,9 +1,6 @@
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
-from ilivery import utils
 from ilivery.decorators import param_groups
 from ilivery.patterns.poly_pattern import poly_pattern
 
@@ -55,7 +52,10 @@ def _get_square_grid(size, square_size, angle, spacing):
 
     # Rotate/scale grid
     out[["x", "y"]] = _transform_shape(
-        verts=np.array(out[["x", "y"]]), scale=(square_size + spacing), xy=(0, 0), angle=angle
+        verts=np.array(out[["x", "y"]]),
+        scale=(square_size + spacing),
+        xy=(0, 0),
+        angle=angle,
     )
 
     # Prune grid

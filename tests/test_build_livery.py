@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import pytest
 
 from ilivery.config.livery_config import LiveryConfig
 from ilivery.build_livery import build_livery
@@ -160,6 +159,38 @@ class TestBuildLivery:
                 }
             ],
             "final_mask": "~segments.mask",
+        }
+
+        config = LiveryConfig.model_validate(config)
+
+        livery = build_livery(config, no_cache=True)
+
+        compare_ref_layer(livery._livery)
+
+    def test_decal_sectioned_small_layer(self, compare_ref_layer):
+        config = {
+            "template": "test_template",
+            "sections": [
+                {
+                    "layers": [
+                        {
+                            "type": "SOLID",
+                            "color": [255, 0, 0],
+                            "spec": [0, 255, 0],
+                        }
+                    ],
+                },
+                {
+                    "section": "segments.small_layer",
+                    "layers": [
+                        {
+                            "type": "SOLID",
+                            "color": [0, 255, 0],
+                            "spec": [0, 0, 255],
+                        },
+                    ],
+                },
+            ],
         }
 
         config = LiveryConfig.model_validate(config)

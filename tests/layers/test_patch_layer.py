@@ -2,7 +2,6 @@
 
 import pydantic
 
-from ilivery.layer import Layer
 from ilivery.layers import layer_from_config
 from ilivery.config import layer_configs
 
@@ -131,6 +130,48 @@ class TestPatchLayer:
                 [50, 0],
                 [100, 0],
                 [0, 50],
+            ],
+            "facecolor": [255, 0, 0],
+            "edgecolor": [0, 255, 0],
+            "facespec": [0, 255, 0],
+            "edgespec": [0, 0, 255],
+            "edgewidth": 4,
+        }
+
+        config = pydantic.TypeAdapter(layer_configs.LayerConfig).validate_python(config)
+        layer = layer_from_config(config, size=(200, 200))
+
+        compare_ref_layer(layer)
+
+    def test_vert_path(self, compare_ref_layer):
+        config = {
+            "type": "PATCH",
+            "vertex_path": [
+                [0, 0],
+                [-90, 50],
+                [-135, 50],
+            ],
+            "vert_path": True,
+            "facecolor": [255, 0, 0],
+            "edgecolor": [0, 255, 0],
+            "facespec": [0, 255, 0],
+            "edgespec": [0, 0, 255],
+            "edgewidth": 4,
+        }
+
+        config = pydantic.TypeAdapter(layer_configs.LayerConfig).validate_python(config)
+        layer = layer_from_config(config, size=(200, 200))
+
+        compare_ref_layer(layer)
+
+    def test_vert_path_abs(self, compare_ref_layer):
+        config = {
+            "type": "PATCH",
+            "vertex_path": [
+                [0, 0],
+                [-90, 50],
+                [-135, 50],
+                [90, 50, "ABS"],
             ],
             "facecolor": [255, 0, 0],
             "edgecolor": [0, 255, 0],

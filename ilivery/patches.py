@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
-#!/usr/bin/env python
-
 import numpy as np
 from matplotlib.path import Path
-from matplotlib.patches import PathPatch, Polygon
+from matplotlib.patches import PathPatch
 from matplotlib.transforms import Bbox, BboxTransformTo
-import matplotlib.pyplot as plt
 
 from ilivery import utils
 
@@ -54,7 +51,10 @@ def proj(seg, center):
     nc = curr - next
     pc2 = np.dot(pc, pc)
     nc2 = np.dot(nc, nc)
-    return (prev + np.dot(center - prev, pc) / pc2 * pc, next + np.dot(center - next, nc) / nc2 * nc)
+    return (
+        prev + np.dot(center - prev, pc) / pc2 * pc,
+        next + np.dot(center - next, nc) / nc2 * nc,
+    )
 
 
 def rad2deg(angle):
