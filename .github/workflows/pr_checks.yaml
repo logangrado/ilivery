@@ -21,8 +21,10 @@ jobs:
 
       - name: debug
         run: |
+          set -x
           pwd
           ls
+          ls resources
 
       - name: Cache Python virtualenv
         uses: actions/cache@v4

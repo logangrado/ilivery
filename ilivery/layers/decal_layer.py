@@ -56,7 +56,7 @@ def _add_decal_helper(layer, decal, rotate, pos, section_bbox) -> Layer:
 
 def decal_from_decal_config(config):
     if config.type == "NAMED":
-        decal_path = DECAL_DIR / f"{config.name}.png"
+        decal_path = DECAL_DIR / f"{config.name.lower()}.png"
         decal = Image.open(decal_path).convert("RGBA")
 
         decal_size = config.size
