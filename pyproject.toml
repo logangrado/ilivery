@@ -28,6 +28,7 @@ build-backend = "hatchling.build"
 dev = [
     "black>=25.1.0",
     "flake8>=7.1.2",
+    "invoke>=2.2.0",
     "ipdb>=0.13.13",
     "ipython>=9.0.2",
     "pytest>=8.3.5",
@@ -41,3 +42,7 @@ path = "ilivery/_version.py"
 template = '''
 __version__ = "{version}"
 '''
+
+[tool.black]
+line_length=120
+exclude=".venv"

@@ -21,7 +21,7 @@ _layer_dict = {
     "PATCH": patch_layer,
     "PATTERN": pattern_layer,
     "STRIPE": stripe_layer,
-    "PSD": psd_layer
+    "PSD": psd_layer,
 }
 
 

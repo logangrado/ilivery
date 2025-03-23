@@ -52,7 +52,11 @@ def _add_grid(image, grid_spacing: int, center_line_thickness: int = 3, alpha: f
         draw.line([(0, y), (width, y)], fill=grid_color, width=1)
 
     # Draw the extra thick center lines
-    draw.line([(center_x, 0), (center_x, height)], fill=grid_color, width=center_line_thickness)
+    draw.line(
+        [(center_x, 0), (center_x, height)],
+        fill=grid_color,
+        width=center_line_thickness,
+    )
     draw.line([(0, center_y), (width, center_y)], fill=grid_color, width=center_line_thickness)
 
     return image

@@ -73,10 +73,7 @@ class Livery:
             raise NotImplementedError("Cache not implemented!")
         livery, next_layer = self._load_latest_cached(no_cache=self._no_cache)
 
-        kwargs = {
-            "template_path": self._template_path,
-            "template": self._template
-        }
+        kwargs = {"template_path": self._template_path, "template": self._template}
 
         for i, section_config in enumerate(self._config.sections):
             logger.info(f"SECTION [{i+1}/{len(self._config.sections)}]")

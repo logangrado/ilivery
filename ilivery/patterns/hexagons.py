@@ -65,7 +65,10 @@ def _get_hex_grid(size, hexagon_size, angle, spacing):
 
     # Rotate/scale grid
     out[["x", "y"]] = _transform_shape(
-        verts=np.array(out[["x", "y"]]), scale=(hexagon_size + spacing), xy=(0, 0), angle=angle
+        verts=np.array(out[["x", "y"]]),
+        scale=(hexagon_size + spacing),
+        xy=(0, 0),
+        angle=angle,
     )
 
     # Prune grid

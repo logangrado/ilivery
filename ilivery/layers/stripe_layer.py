@@ -131,7 +131,10 @@ def _compute_verticies(points, radii, width, tip_angles):
         raise ValueError("Require equal number of radii and points")
 
     # Ensure the widths array has the correct shape
-    assert width.shape == (N - 1, 2), "Width must be a constant or have the same length as points."
+    assert width.shape == (
+        N - 1,
+        2,
+    ), "Width must be a constant or have the same length as points."
 
     # Preallocate space for vertices
     verts_l = np.zeros((N, 2))

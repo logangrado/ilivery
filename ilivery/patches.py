@@ -54,7 +54,10 @@ def proj(seg, center):
     nc = curr - next
     pc2 = np.dot(pc, pc)
     nc2 = np.dot(nc, nc)
-    return (prev + np.dot(center - prev, pc) / pc2 * pc, next + np.dot(center - next, nc) / nc2 * nc)
+    return (
+        prev + np.dot(center - prev, pc) / pc2 * pc,
+        next + np.dot(center - next, nc) / nc2 * nc,
+    )
 
 
 def rad2deg(angle):
