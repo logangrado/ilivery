@@ -5,50 +5,20 @@ import hashlib
 import json
 import logging
 import shutil
-from concurrent.futures import ThreadPoolExecutor
+import tqdm
+
 from pathlib import Path
 
 from ilivery import LAYER_CACHE_DIR, TEMPLATE_DIR, utils
 from ilivery.layer import Layer
 from ilivery.layers import layer_from_config
+from ilivery.utils.executor import make_executor
 
 logger = logging.getLogger(__name__)
 
 
 def _get_cache_path(path, sha):
     return path / sha[:2] / sha[2:]
-
-
-def __build_layer(section_config, size, template, kwargs) -> tuple[Layer, tuple[int, int]]:
-    # Get the section, if required
-    mask = None
-    dest = (0, 0)
-
-    if section_config.section is not None:
-        mask, bbox = utils.psd.get_section_mask(section_config.section, template)
-        dest = (bbox[0], bbox[1])
-        size = (bbox[2] - bbox[0], bbox[3] - bbox[1])
-
-    layer_kwargs = {**kwargs, **{"size": size}}
-    section = Layer(size)
-
-    # Build all layers
-    for j, layer_config in enumerate(section_config.layers):
-        logger.info(f"  LAYER [{j+1}/{len(section_config.layers)}]")
-        # Build layer
-        layer = layer_from_config(layer_config, **layer_kwargs)
-
-        # Flatten
-        section = section.flatten(layer)
-
-    # Mask the section, if required
-    if mask:
-        # Crop mask to bbox
-        mask = mask.crop(bbox)
-        # Mask section
-        section = section.mask(mask)
-
-    return section, dest
 
 
 def _build_layer(section_mask, section_dest, section_size, layer_config, template_path, template, base):
@@ -69,23 +39,20 @@ def _merge(left, right):
     return left.flatten(right)
 
 
-def _recursive_build(left, right, build_list, build_func, merge_func, pool):
+def _recursive_build(left, right, build_list, build_func, merge_func, pool, pbar):
     if right - left >= 2:
         center = left + (right - left) // 2
-        print(left, center, right)
 
-        left_result = _recursive_build(left, center, build_list, build_func, merge_func, pool)
-        right_result = _recursive_build(center, right, build_list, build_func, merge_func, pool)
+        left_f = pool.submit(_recursive_build, left, center, build_list, build_func, merge_func, pool, pbar)
+        right_f = pool.submit(_recursive_build, center, right, build_list, build_func, merge_func, pool, pbar)
 
-        print(f"Merging {left,center,right}")
-
-        result = merge_func(left_result, right_result)
-
-        return result
-
+        return merge_func(left_f.result(), right_f.result())
     else:
-        print(f"Building {left}")
-        return build_func(**build_list[left])
+        result = build_func(**build_list[left])
+        if pbar is not None:
+            # ensure thread-safe increments
+            pbar.update(1)
+        return result
 
 
 class Livery:
@@ -138,20 +105,15 @@ class Livery:
 
         return livery, next_layer
 
-    def build(self, threads=32):
+    def build(self, threads=16, progress=True):
         if not self._no_cache:
             raise NotImplementedError("Cache not implemented!")
         # livery, next_layer = self._load_latest_cached(no_cache=self._no_cache)
         base = Layer(self._size)
         kwargs = {"template_path": self._template_path, "template": self._template, "base": base}
 
-        build_list = [
-            # {
-            #     **kwargs,
-            #     **{"section_mask": None, "section_dest": None, "section_size": self._size, "layer_config": None},
-            # },
-        ]
-        for i, section_config in enumerate(self._config.sections):
+        build_list = []
+        for section_config in self._config.sections:
             section_size = self._size
             section_dest = (0, 0)
             section_mask = None
@@ -161,9 +123,7 @@ class Livery:
                 section_size = (bbox[2] - bbox[0], bbox[3] - bbox[1])
                 section_mask = section_mask.crop(bbox)
 
-            for j, layer_config in enumerate(section_config.layers):
-                # layer_kwargs = {**kwargs, **{"size": section_size}}
-
+            for layer_config in section_config.layers:
                 build_list.append(
                     {
                         **kwargs,
@@ -176,26 +136,10 @@ class Livery:
                     }
                 )
 
-        pool = None
-        livery = _recursive_build(0, len(build_list), build_list, _build_layer, _merge, pool)
-
-        # if threads > 1:
-        #     with ThreadPoolExecutor(threads) as pool:
-        #         result = _build_livery(0, len(self._config.sections), self._config.sections, pool)
-
-        #         futures = pool.map(
-        #             functools.partial(_build_layer, size=self._size, template=self._template, kwargs=kwargs),
-        #             self._config.sections,
-        #         )
-        #         for i, result in enumerate(futures):
-        #             logger.info(f"SECTION [{i+1}/{len(self._config.sections)}]")
-        #             livery = livery.flatten(*result)
-        # else:
-        #     for i, section_config in enumerate(self._config.sections):
-        #         logger.info(f"SECTION [{i+1}/{len(self._config.sections)}]")
-        #         section, dest = _build_layer(section_config, size=self._size, template=self._template, kwargs=kwargs)
-        #         # Flatten section into livery
-        #         livery = livery.flatten(section, dest)
+        with make_executor(threads) as pool, tqdm.tqdm(
+            total=len(build_list), desc="Layers", disable=not progress
+        ) as pbar:
+            livery = _recursive_build(0, len(build_list), build_list, _build_layer, _merge, pool, pbar)
 
         if self._config.final_mask:
             mask, bbox = utils.psd.get_section_mask(self._config.final_mask, self._template)
