@@ -1,15 +1,13 @@
 import hashlib
-import functools
-import numpy as np
+import logging
 import re
 import shutil
 from typing import Iterable
 
+import numpy as np
 from ilivery import TEMPLATE_DIR
-from psd_tools import PSDImage
 from PIL import Image
-
-import logging
+from psd_tools import PSDImage
 
 logger = logging.getLogger(__name__)
 
@@ -125,38 +123,6 @@ def _alpha_bool(img: Image.Image) -> np.ndarray:
     return mask
 
 
-def _get_section_component_bool(section, psd_layers) -> np.ndarray:
-    img = template  # however you look it up; e.g., nested dict via dots
-    for part in name.split("."):
-        img = img[part]  # img is a PIL.Image.Image
-    if img.mode == "RGBA":
-        return np.asarray(img.getchannel("A")) > 0
-    # fall back to luminance
-    return np.asarray(img.convert("L"), dtype=np.uint8) > 0
-
-
-def _get_section_component(section, psd_layers):
-    sections = section.split(".")
-
-    section_masks = functools.reduce(lambda x, y: x.get(y, {}), [psd_layers] + sections)
-    # section_mask = self._psd_layers.get(section, None)
-    if section_masks == {}:
-        raise ValueError(f"Unknown section '{section}'.\nAvailabe sections:\n{_format_keys_recursive(psd_layers)}")
-
-    if isinstance(section_masks, dict):
-        section_masks = section_masks.values()
-    else:
-        section_masks = [section_masks]
-
-    # Convert to binary masks
-    section_masks = [np.array(x)[:, :, 3] == 255 for x in section_masks]
-
-    # Union
-    mask = functools.reduce(lambda x, y: np.logical_or(x, y), section_masks)
-
-    return mask
-
-
 def _lookup_path(psd_layers: dict, dotted: str):
     """Follow a dotted path like 'segments.rear_0' into nested dicts."""
     cur = psd_layers
@@ -209,23 +175,6 @@ def _get_section_component_bool(
     return out
 
 
-def _crop_mask_fast(mask_bool: np.ndarray):
-    """
-    Given a 2D boolean mask (True = keep), return (cropped PIL mask, bbox).
-    PIL mask is 1-channel ("L") with 0/255 values, cropped to bbox.
-    """
-    bbox = _bbox_from_bool(mask_bool)
-    if bbox is None:
-        raise ValueError("Mask is empty!")
-
-    l, t, r, b = bbox
-    cropped_bool = mask_bool[t:b, l:r]  # view, no copy
-    # Build a small 1-channel image only once:
-    cropped_u8 = cropped_bool.astype(np.uint8) * 255
-    pil_mask = Image.fromarray(cropped_u8, mode="L")  # or .convert("1") if you prefer 1-bit
-    return pil_mask, bbox
-
-
 def _apply_operator(stack, operators):
     operator = operators.pop()
     if operator == "~":
@@ -264,7 +213,7 @@ def _crop_bool_mask(mask_bool: np.ndarray):
 
 
 def get_section_mask(expression, template, crop_mask=True):
-    logger.info(f"Getting section: {expression}")
+    logger.debug(f"Getting section: {expression}")
     tokens = re.findall(r"[a-zA-Z0-9_.]+|[&|~()]", expression)
     stack = []
     operators = []
@@ -272,7 +221,7 @@ def get_section_mask(expression, template, crop_mask=True):
     if template is None:
         raise ValueError("Attempted to get section mask, but no template provided")
 
-    logger.info("Building operator stack")
+    logger.debug("Building operator stack")
     i = 0
     while i < len(tokens):
         token = tokens[i]
@@ -299,7 +248,7 @@ def get_section_mask(expression, template, crop_mask=True):
             raise ValueError(f"Invalid token: {token}")
         i += 1
 
-    logger.info("Applying operations")
+    logger.debug("Applying operations")
     while operators:
         stack, operators = _apply_operator(stack, operators)
 
@@ -309,12 +258,12 @@ def get_section_mask(expression, template, crop_mask=True):
         raise ValueError(f"Mask is empty!\nSection expression: {expression}")
 
     if crop_mask:
-        logger.info("Cropping mask")
+        logger.debug("Cropping mask")
         section_mask, bbox = _crop_bool_mask(mask_bool)
     else:
         section_mask = mask_bool
         bbox = (0, 0) + section_mask.shape
-    logger.info("Done")
+    logger.debug("Done")
     return section_mask, bbox
 
 
@@ -331,7 +280,7 @@ def load_layers(path, groups=None):
             cache_valid = True
 
     if not cache_valid:
-        logger.info("Cache invalid, re-caching PSD layers")
+        logger.debug("Cache invalid, re-caching PSD layers")
         if cache_base_path.exists():
             shutil.rmtree(cache_base_path)
         psd = PSDImage.open(path)

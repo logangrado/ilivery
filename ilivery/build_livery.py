@@ -110,6 +110,7 @@ class Livery:
         return livery, next_layer
 
     def build(self, threads=16, progress=True):
+        logger.info("Building livery")
         t0 = datetime.datetime.now()
         if not self._no_cache:
             raise NotImplementedError("Cache not implemented!")
@@ -117,14 +118,13 @@ class Livery:
         # base = Layer(self._size)
         kwargs = {"template_path": self._template_path, "template": self._template, "base_size": self._size}
 
-        logger.info("Building layer list")
+        logger.debug("Building layer list")
         build_list = []
         for section_config in self._config.sections:
             section_size = self._size
             section_dest = (0, 0)
             section_mask = None
             if section_config.section is not None:
-                print(f"BUILDING MASK: {section_config.section}")
                 section_mask, bbox = utils.psd.get_section_mask(section_config.section, self._template)
                 section_dest = (bbox[0], bbox[1])
                 section_size = (bbox[2] - bbox[0], bbox[3] - bbox[1])
@@ -142,18 +142,18 @@ class Livery:
                     }
                 )
 
-        logger.info("Building layers")
+        logger.debug("Building layers")
         with make_executor(threads) as pool, tqdm.tqdm(
             total=len(build_list), desc="Layers", disable=not progress
         ) as pbar:
             livery = _recursive_build(0, len(build_list), build_list, _build_layer, _merge, pool, pbar)
 
-        logger.info("Applying final mask")
+        logger.debug("Applying final mask")
         if self._config.final_mask:
             mask, bbox = utils.psd.get_section_mask(self._config.final_mask, self._template, crop_mask=False)
             livery = livery.mask(mask)
 
-        logger.info("Brightening by spec")
+        logger.debug("Brightening by spec")
         self._livery = livery.brighten_by_spec()
         self._livery = livery
         self._built = True
