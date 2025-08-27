@@ -127,7 +127,7 @@ class Layer:
 
         return new_layer
 
-    def flatten(self, other_layer, dest=(0, 0)) -> "Layer":
+    def flatten(self, other_layer: "Layer", dest: tuple[int, int] = (0, 0)) -> "Layer":
         new_layer = self.copy()
 
         new_layer._paint.alpha_composite(other_layer._paint, dest=dest)

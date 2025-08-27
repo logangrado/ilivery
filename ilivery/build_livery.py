@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-import json
+import functools
 import hashlib
+import json
 import logging
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from ilivery import LAYER_CACHE_DIR, TEMPLATE_DIR, utils
 from ilivery.layer import Layer
-from ilivery import TEMPLATE_DIR, LAYER_CACHE_DIR, utils
 from ilivery.layers import layer_from_config
 
 logger = logging.getLogger(__name__)
@@ -15,6 +17,75 @@ logger = logging.getLogger(__name__)
 
 def _get_cache_path(path, sha):
     return path / sha[:2] / sha[2:]
+
+
+def __build_layer(section_config, size, template, kwargs) -> tuple[Layer, tuple[int, int]]:
+    # Get the section, if required
+    mask = None
+    dest = (0, 0)
+
+    if section_config.section is not None:
+        mask, bbox = utils.psd.get_section_mask(section_config.section, template)
+        dest = (bbox[0], bbox[1])
+        size = (bbox[2] - bbox[0], bbox[3] - bbox[1])
+
+    layer_kwargs = {**kwargs, **{"size": size}}
+    section = Layer(size)
+
+    # Build all layers
+    for j, layer_config in enumerate(section_config.layers):
+        logger.info(f"  LAYER [{j+1}/{len(section_config.layers)}]")
+        # Build layer
+        layer = layer_from_config(layer_config, **layer_kwargs)
+
+        # Flatten
+        section = section.flatten(layer)
+
+    # Mask the section, if required
+    if mask:
+        # Crop mask to bbox
+        mask = mask.crop(bbox)
+        # Mask section
+        section = section.mask(mask)
+
+    return section, dest
+
+
+def _build_layer(section_mask, section_dest, section_size, layer_config, template_path, template, base):
+    if layer_config is None:
+        return Layer(section_size)
+
+    layer = layer_from_config(layer_config, size=section_size, template_path=template_path, template=template)
+
+    if section_mask:
+        layer = layer.mask(section_mask)
+
+    # Merge the result into base
+    layer = base.flatten(layer, section_dest)
+    return layer
+
+
+def _merge(left, right):
+    return left.flatten(right)
+
+
+def _recursive_build(left, right, build_list, build_func, merge_func, pool):
+    if right - left >= 2:
+        center = left + (right - left) // 2
+        print(left, center, right)
+
+        left_result = _recursive_build(left, center, build_list, build_func, merge_func, pool)
+        right_result = _recursive_build(center, right, build_list, build_func, merge_func, pool)
+
+        print(f"Merging {left,center,right}")
+
+        result = merge_func(left_result, right_result)
+
+        return result
+
+    else:
+        print(f"Building {left}")
+        return build_func(**build_list[left])
 
 
 class Livery:
@@ -67,46 +138,64 @@ class Livery:
 
         return livery, next_layer
 
-    def build(self):
+    def build(self, threads=32):
         if not self._no_cache:
             raise NotImplementedError("Cache not implemented!")
-        livery, next_layer = self._load_latest_cached(no_cache=self._no_cache)
+        # livery, next_layer = self._load_latest_cached(no_cache=self._no_cache)
+        base = Layer(self._size)
+        kwargs = {"template_path": self._template_path, "template": self._template, "base": base}
 
-        kwargs = {"template_path": self._template_path, "template": self._template}
-
+        build_list = [
+            # {
+            #     **kwargs,
+            #     **{"section_mask": None, "section_dest": None, "section_size": self._size, "layer_config": None},
+            # },
+        ]
         for i, section_config in enumerate(self._config.sections):
-            logger.info(f"SECTION [{i+1}/{len(self._config.sections)}]")
-            # Get the section, if required
-            mask = None
-            dest = (0, 0)
-            size = self._size
-
+            section_size = self._size
+            section_dest = (0, 0)
+            section_mask = None
             if section_config.section is not None:
-                mask, bbox = utils.psd.get_section_mask(section_config.section, self._template)
-                dest = (bbox[0], bbox[1])
-                size = (bbox[2] - bbox[0], bbox[3] - bbox[1])
+                section_mask, bbox = utils.psd.get_section_mask(section_config.section, self._template)
+                section_dest = (bbox[0], bbox[1])
+                section_size = (bbox[2] - bbox[0], bbox[3] - bbox[1])
+                section_mask = section_mask.crop(bbox)
 
-            layer_kwargs = {**kwargs, **{"size": size}}
-            section = Layer(size)
-
-            # Build all layers
             for j, layer_config in enumerate(section_config.layers):
-                logger.info(f"  LAYER [{j+1}/{len(section_config.layers)}]")
-                # Build layer
-                layer = layer_from_config(layer_config, **layer_kwargs)
+                # layer_kwargs = {**kwargs, **{"size": section_size}}
 
-                # Flatten
-                section = section.flatten(layer)
+                build_list.append(
+                    {
+                        **kwargs,
+                        **{
+                            "section_mask": section_mask,
+                            "section_dest": section_dest,
+                            "section_size": section_size,
+                            "layer_config": layer_config,
+                        },
+                    }
+                )
 
-            # Mask the section, if required
-            if mask:
-                # Crop mask to bbox
-                mask = mask.crop(bbox)
-                # Mask section
-                section = section.mask(mask)
+        pool = None
+        livery = _recursive_build(0, len(build_list), build_list, _build_layer, _merge, pool)
 
-            # Flatten section into livery
-            livery = livery.flatten(section, dest)
+        # if threads > 1:
+        #     with ThreadPoolExecutor(threads) as pool:
+        #         result = _build_livery(0, len(self._config.sections), self._config.sections, pool)
+
+        #         futures = pool.map(
+        #             functools.partial(_build_layer, size=self._size, template=self._template, kwargs=kwargs),
+        #             self._config.sections,
+        #         )
+        #         for i, result in enumerate(futures):
+        #             logger.info(f"SECTION [{i+1}/{len(self._config.sections)}]")
+        #             livery = livery.flatten(*result)
+        # else:
+        #     for i, section_config in enumerate(self._config.sections):
+        #         logger.info(f"SECTION [{i+1}/{len(self._config.sections)}]")
+        #         section, dest = _build_layer(section_config, size=self._size, template=self._template, kwargs=kwargs)
+        #         # Flatten section into livery
+        #         livery = livery.flatten(section, dest)
 
         if self._config.final_mask:
             mask, bbox = utils.psd.get_section_mask(self._config.final_mask, self._template)

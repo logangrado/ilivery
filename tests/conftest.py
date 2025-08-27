@@ -79,8 +79,18 @@ def compare_ref_layer(request, test_id):
 
         path = REF_BASE_PATH / test_id
 
+        try:
+            ref_layer = Layer.load(path)
+        except Exception as e:
+            if request.config.getoption("show"):
+                ref_layer = None
+            else:
+                raise e
+
         if request.config.getoption("show"):
             layer.show()
+            if ref_layer:
+                ref_layer.show()
 
         if request.config.getoption("update_ref_layers"):
             layer.save(path, overwrite=True)
