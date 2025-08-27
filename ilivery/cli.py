@@ -32,14 +32,15 @@ def _load_config(config_path):
 @click.option("--show", is_flag=True)
 @click.option("--show-spec", is_flag=True)
 @click.option("--save", is_flag=True)
-def main(config, no_cache, show, show_spec, save):
+@click.option("--debug", is_flag=True)
+def main(config, no_cache, show, show_spec, save, debug):
     config = _load_config(config)
 
     from ilivery.build_livery import build_livery
     from ilivery import utils
 
     no_cache = True
-    livery = build_livery(config, no_cache)
+    livery = build_livery(config, no_cache, debug)
 
     if show_spec:
         livery._livery.show_spec()

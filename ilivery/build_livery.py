@@ -60,6 +60,7 @@ class Livery:
         self._config = config
 
         self._template_path = TEMPLATE_DIR / config.template / "segmented.psd"
+        logger.info("Loading template")
         self._template, template_hash, template_size = utils.psd.load_layers(self._template_path)
         self._no_cache = no_cache
 
@@ -136,18 +137,22 @@ class Livery:
                     }
                 )
 
+        logger.info("Building layers")
         with make_executor(threads) as pool, tqdm.tqdm(
             total=len(build_list), desc="Layers", disable=not progress
         ) as pbar:
             livery = _recursive_build(0, len(build_list), build_list, _build_layer, _merge, pool, pbar)
 
+        logger.info("Applying final mask")
         if self._config.final_mask:
             mask, bbox = utils.psd.get_section_mask(self._config.final_mask, self._template)
             livery = livery.mask(mask)
 
+        logger.info("Brightening by spec")
         self._livery = livery.brighten_by_spec()
         self._livery = livery
         self._built = True
+        logger.info("Done")
 
     def show(self):
         self._livery.show()
@@ -170,9 +175,12 @@ class Livery:
         self._livery._spec.save(fp=spec_path, format="tga", compression="tga_rle")
 
 
-def build_livery(config, no_cache):
+def build_livery(config, no_cache, debug):
     livery = Livery(config, no_cache)
 
-    livery.build()
+    threads = 16
+    if debug:
+        threads = 1
+    livery.build(threads=threads)
 
     return livery
