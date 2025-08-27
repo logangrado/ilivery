@@ -132,7 +132,7 @@ class Livery:
         with make_executor(threads) as pool, tqdm.tqdm(
             total=len(build_list), desc="Layers", disable=not progress
         ) as pbar:
-            final_future = reduce_submit_in_order(build_list, _build_layer, _merge, pool=pool)
+            final_future = reduce_submit_in_order(build_list, _build_layer, _merge, pool=pool, pbar=pbar)
 
             livery = final_future.result()
 

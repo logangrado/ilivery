@@ -1,17 +1,9 @@
-#!/usr/bin/env python3
-from __future__ import annotations
 from concurrent import futures
 from dataclasses import dataclass
-from typing import Any, Callable, List, Sequence, Tuple
+from typing import Any, Callable, List, Sequence, Optional
 
 
-# --- helper: schedule a merge only after both inputs finish ---
-def _submit_merge_when_ready(
-    pool: futures.Executor,
-    left_fut: futures.Future,
-    right_fut: futures.Future,
-    merge_items: Callable[[Any, Any], Any],
-) -> futures.Future:
+def _submit_merge_when_ready(pool, left_fut, right_fut, merge_items):
     out = futures.Future()
     scheduled = {"flag": False}
 
@@ -47,44 +39,54 @@ def _submit_merge_when_ready(
 @dataclass
 class _Node:
     fut: futures.Future
-    lvl: int  # 0 for leaves; +1 per merge
+    lvl: int
 
 
 def reduce_submit_in_order(
     items: Sequence[Any],
-    build_item: Callable[[Any], Any],  # takes a single item (params) -> obj
-    merge_items: Callable[[Any, Any], Any],  # merges two objs -> obj
+    build_item: Callable[[Any], Any],
+    merge_items: Callable[[Any, Any], Any],
     *,
     pool: futures.Executor,
+    pbar: Optional["tqdm.tqdm"] = None,
+    update_on: str = "always",  # "always" or "success"
 ) -> futures.Future:
-    """
-    Submit jobs in strict binary-tree order:
-      build 0, build 1, merge(0,1),
-      build 2, build 3, merge(2,3),
-      merge((0,1),(2,3)), ...
-    Returns a Future for the final result. No worker ever blocks on another Future.
-    """
     if not items:
         raise ValueError("items is empty")
 
+    def _attach_progress(fut: futures.Future):
+        if pbar is None:
+            return
+
+        def _inc(done: futures.Future):
+            if update_on == "success":
+                if done.exception() is None:
+                    pbar.update(1)
+            else:
+                pbar.update(1)
+
+        fut.add_done_callback(_inc)
+
     stack: List[_Node] = []
+    it = iter(items)
 
-    # submit leaves one by one; whenever the top two have the same level, submit their merge
-    for itm in items:
+    # submit first two leaves (if present), their merge, then continue
+    for itm in it:
         leaf = pool.submit(lambda params: build_item(**params), itm)
+        _attach_progress(leaf)
         stack.append(_Node(leaf, 0))
+        # whenever top two share level, submit their merge
         while len(stack) >= 2 and stack[-1].lvl == stack[-2].lvl:
-            right = stack.pop()
-            left = stack.pop()
-            merged = _submit_merge_when_ready(pool, left.fut, right.fut, merge_items)
-            stack.append(_Node(merged, left.lvl + 1))
+            r = stack.pop()
+            l = stack.pop()
+            m = _submit_merge_when_ready(pool, l.fut, r.fut, merge_items)
+            stack.append(_Node(m, l.lvl + 1))
 
-    # drain remaining nodes to a single result (handles odd counts)
+    # drain remaining nodes (handles odd counts)
     while len(stack) > 1:
-        right = stack.pop()
-        left = stack.pop()
-        merged = _submit_merge_when_ready(pool, left.fut, right.fut, merge_items)
-        # level here is max+1 to keep it monotonic even if levels differ
-        stack.append(_Node(merged, max(left.lvl, right.lvl) + 1))
+        r = stack.pop()
+        l = stack.pop()
+        m = _submit_merge_when_ready(pool, l.fut, r.fut, merge_items)
+        stack.append(_Node(m, max(l.lvl, r.lvl) + 1))
 
     return stack[0].fut
