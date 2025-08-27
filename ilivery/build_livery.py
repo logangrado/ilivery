@@ -7,13 +7,15 @@ import logging
 import shutil
 import tqdm
 import datetime
-
+from concurrent import futures
 from pathlib import Path
 
 from ilivery import LAYER_CACHE_DIR, TEMPLATE_DIR, utils
 from ilivery.layer import Layer
 from ilivery.layers import layer_from_config
 from ilivery.utils.executor import make_executor
+from ilivery.reduce_merge import reduce_submit_in_order
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ def _get_cache_path(path, sha):
     return path / sha[:2] / sha[2:]
 
 
-def _build_layer(i, section_mask, section_dest, section_size, layer_config, template_path, template, base_size):
+def _build_layer(section_mask, section_dest, section_size, layer_config, template_path, template, base_size):
     if layer_config is None:
         return Layer(section_size)
 
@@ -40,22 +42,6 @@ def _build_layer(i, section_mask, section_dest, section_size, layer_config, temp
 
 def _merge(left, right):
     return left.flatten(right)
-
-
-def _recursive_build(left, right, build_list, build_func, merge_func, pool, pbar):
-    if right - left >= 2:
-        center = left + (right - left) // 2
-
-        left_f = pool.submit(_recursive_build, left, center, build_list, build_func, merge_func, pool, pbar)
-        right_f = pool.submit(_recursive_build, center, right, build_list, build_func, merge_func, pool, pbar)
-
-        return merge_func(left_f.result(), right_f.result())
-    else:
-        result = build_func(left, **build_list[left])
-        if pbar is not None:
-            # ensure thread-safe increments
-            pbar.update(1)
-        return result
 
 
 class Livery:
@@ -146,7 +132,9 @@ class Livery:
         with make_executor(threads) as pool, tqdm.tqdm(
             total=len(build_list), desc="Layers", disable=not progress
         ) as pbar:
-            livery = _recursive_build(0, len(build_list), build_list, _build_layer, _merge, pool, pbar)
+            final_future = reduce_submit_in_order(build_list, _build_layer, _merge, pool=pool)
+
+            livery = final_future.result()
 
         logger.debug("Applying final mask")
         if self._config.final_mask:
