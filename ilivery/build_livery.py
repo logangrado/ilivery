@@ -6,6 +6,7 @@ import json
 import logging
 import shutil
 import tqdm
+import datetime
 
 from pathlib import Path
 
@@ -21,7 +22,7 @@ def _get_cache_path(path, sha):
     return path / sha[:2] / sha[2:]
 
 
-def _build_layer(section_mask, section_dest, section_size, layer_config, template_path, template, base):
+def _build_layer(i, section_mask, section_dest, section_size, layer_config, template_path, template, base_size):
     if layer_config is None:
         return Layer(section_size)
 
@@ -31,7 +32,9 @@ def _build_layer(section_mask, section_dest, section_size, layer_config, templat
         layer = layer.mask(section_mask)
 
     # Merge the result into base
-    layer = base.flatten(layer, section_dest)
+    # print(f"{i}: {layer} {section_dest}")
+    layer = Layer(base_size).flatten(layer, section_dest)
+    # layer = base.flatten(layer, section_dest)
     return layer
 
 
@@ -48,7 +51,7 @@ def _recursive_build(left, right, build_list, build_func, merge_func, pool, pbar
 
         return merge_func(left_f.result(), right_f.result())
     else:
-        result = build_func(**build_list[left])
+        result = build_func(left, **build_list[left])
         if pbar is not None:
             # ensure thread-safe increments
             pbar.update(1)
@@ -107,12 +110,14 @@ class Livery:
         return livery, next_layer
 
     def build(self, threads=16, progress=True):
+        t0 = datetime.datetime.now()
         if not self._no_cache:
             raise NotImplementedError("Cache not implemented!")
         # livery, next_layer = self._load_latest_cached(no_cache=self._no_cache)
-        base = Layer(self._size)
-        kwargs = {"template_path": self._template_path, "template": self._template, "base": base}
+        # base = Layer(self._size)
+        kwargs = {"template_path": self._template_path, "template": self._template, "base_size": self._size}
 
+        logger.info("Building layer list")
         build_list = []
         for section_config in self._config.sections:
             section_size = self._size
@@ -152,7 +157,9 @@ class Livery:
         self._livery = livery.brighten_by_spec()
         self._livery = livery
         self._built = True
-        logger.info("Done")
+
+        dt = (datetime.datetime.now() - t0).total_seconds()
+        logger.info(f"Livery built in {dt:0.2f}s")
 
     def show(self):
         self._livery.show()
