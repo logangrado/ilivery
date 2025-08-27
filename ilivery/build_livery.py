@@ -28,7 +28,7 @@ def _build_layer(i, section_mask, section_dest, section_size, layer_config, temp
 
     layer = layer_from_config(layer_config, size=section_size, template_path=template_path, template=template)
 
-    if section_mask:
+    if section_mask is not None:
         layer = layer.mask(section_mask)
 
     # Merge the result into base
@@ -124,10 +124,10 @@ class Livery:
             section_dest = (0, 0)
             section_mask = None
             if section_config.section is not None:
+                print(f"BUILDING MASK: {section_config.section}")
                 section_mask, bbox = utils.psd.get_section_mask(section_config.section, self._template)
                 section_dest = (bbox[0], bbox[1])
                 section_size = (bbox[2] - bbox[0], bbox[3] - bbox[1])
-                section_mask = section_mask.crop(bbox)
 
             for layer_config in section_config.layers:
                 build_list.append(
@@ -150,7 +150,7 @@ class Livery:
 
         logger.info("Applying final mask")
         if self._config.final_mask:
-            mask, bbox = utils.psd.get_section_mask(self._config.final_mask, self._template)
+            mask, bbox = utils.psd.get_section_mask(self._config.final_mask, self._template, crop_mask=False)
             livery = livery.mask(mask)
 
         logger.info("Brightening by spec")
