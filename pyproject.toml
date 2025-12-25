@@ -27,12 +27,11 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "black>=25.1.0",
-    "flake8>=7.1.2",
     "invoke>=2.2.0",
     "ipdb>=0.13.13",
     "ipython>=9.0.2",
     "pytest>=8.3.5",
+    "ruff>=0.14.10",
 ]
 
 [tool.hatch.version]
@@ -47,3 +46,29 @@ __version__ = "{version}"
 [tool.black]
 line_length=120
 exclude=".venv"
+
+[tool.ruff]
+line-length = 120
+exclude = [
+  ".git",
+  ".venv",
+  "__pycacne__",
+]
+
+[tool.ruff.lint]
+select = ["E","F","I"]
+ignore = [
+  "E501",
+  "E203",
+  "E251",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["mkdocs_auto_public_api"]
+section-order = ["future","standard-library","third-party","first-party","local-folder"]
+split-on-trailing-comma=true
+
+[tool.ruff.format]
+quote-style='double'
+indent-style='space'
+line-ending='auto'
