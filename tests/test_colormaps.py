@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import pydantic
 import numpy as np
+import pydantic
 from PIL import Image
 
-from ilivery.config.color_configs import ColorMap
 from ilivery.colormaps import colormap_from_config
+from ilivery.config.color_configs import ColorMap
 
 
 def _image_from_cmap(cmap, size=(400, 20)):

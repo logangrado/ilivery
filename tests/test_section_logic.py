@@ -4,9 +4,10 @@ from typing import Callable
 
 import numpy as np
 import pytest
+from PIL import Image
+
 from ilivery import TEMPLATE_DIR
 from ilivery.utils import psd
-from PIL import Image
 
 
 def _run_test(expression: str, compare_ref_image: Callable):

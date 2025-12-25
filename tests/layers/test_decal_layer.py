@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import pydantic
-
-from ilivery.layers import layer_from_config
-from ilivery.config import layer_configs
-
 import pytest
+
+from ilivery.config import layer_configs
+from ilivery.layers import layer_from_config
 
 
 class TestDecalLayer:

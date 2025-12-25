@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from ilivery.config.livery_config import LiveryConfig
 from ilivery.build_livery import build_livery
+from ilivery.config.livery_config import LiveryConfig
 
 
 class TestBuildLivery:

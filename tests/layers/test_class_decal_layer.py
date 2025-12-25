@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 import pydantic
-
-from ilivery.layers import layer_from_config
-from ilivery.config import layer_configs
-from ilivery import TEMPLATE_DIR
-
 import pytest
+
+from ilivery import TEMPLATE_DIR
+from ilivery.config import layer_configs
+from ilivery.layers import layer_from_config
 
 
 class TestTextureLayer:
