@@ -35,6 +35,8 @@ jobs:
 
       - name: Lint
         run: |
+          ls
+          pwd
           uv run inv format --check
 
       - name: Run Tests
