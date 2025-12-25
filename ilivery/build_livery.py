@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 import datetime
-import functools
 import hashlib
 import json
 import logging
 import shutil
-from concurrent import futures
 from pathlib import Path
 
 import tqdm

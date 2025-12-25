@@ -113,8 +113,6 @@ def _iter_leaf_images(node) -> Iterable[Image.Image]:
 
 def _alpha_bool(img: Image.Image) -> np.ndarray:
     """Get a 2D boolean mask from the image's alpha (or luminance if no alpha)."""
-    key = (id(img), img.size)
-
     if "A" in img.getbands():
         a = np.asarray(img.getchannel("A"), dtype=np.uint8)  # HxW
     else:
@@ -167,8 +165,9 @@ def _get_section_component_bool(
 
     if isinstance(node, dict):
         # Union all child leaves under this group
-        masks = (_alpha_bool(img) for img in _iter_leaf_images(node))
-        out = _fast_union_bool(masks)
+        raise NotImplementedError("Someone forgot to implement this path")
+        # masks = (_alpha_bool(img) for img in _iter_leaf_images(node))
+        # out = _fast_union_bool(masks)
     else:
         out = _alpha_bool(node)
 
@@ -218,9 +217,6 @@ def get_section_mask(expression: str, template, crop_mask=True) -> tuple[np.ndar
     """
     Collect the section mask given the expression and template.
     """
-    # fmt: off
-    import ipdb; ipdb.set_trace()
-    # fmt: on
     logger.debug(f"Getting section: {expression}")
     tokens = re.findall(r"[a-zA-Z0-9_.]+|[&|~()]", expression)
     stack = []

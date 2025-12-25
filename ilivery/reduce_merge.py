@@ -1,6 +1,8 @@
 from concurrent import futures
 from dataclasses import dataclass
-from typing import Any, Callable, List, Sequence, Optional
+from typing import Any, Callable, List, Optional, Sequence
+
+import tqdm
 
 
 def _submit_merge_when_ready(pool, left_fut, right_fut, merge_items):
@@ -77,16 +79,16 @@ def reduce_submit_in_order(
         stack.append(_Node(leaf, 0))
         # whenever top two share level, submit their merge
         while len(stack) >= 2 and stack[-1].lvl == stack[-2].lvl:
-            r = stack.pop()
-            l = stack.pop()
-            m = _submit_merge_when_ready(pool, l.fut, r.fut, merge_items)
-            stack.append(_Node(m, l.lvl + 1))
+            right = stack.pop()
+            left = stack.pop()
+            mid = _submit_merge_when_ready(pool, left.fut, right.fut, merge_items)
+            stack.append(_Node(mid, left.lvl + 1))
 
     # drain remaining nodes (handles odd counts)
     while len(stack) > 1:
-        r = stack.pop()
-        l = stack.pop()
-        m = _submit_merge_when_ready(pool, l.fut, r.fut, merge_items)
-        stack.append(_Node(m, max(l.lvl, r.lvl) + 1))
+        right = stack.pop()
+        left = stack.pop()
+        mid = _submit_merge_when_ready(pool, left.fut, right.fut, merge_items)
+        stack.append(_Node(mid, max(left.lvl, right.lvl) + 1))
 
     return stack[0].fut
