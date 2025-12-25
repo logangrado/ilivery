@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
 import functools
-
-from ilivery.layer import Layer
-from ilivery import utils
-
 import logging
+
+from ilivery import utils
+from ilivery.layer import Layer
 
 logger = logging.getLogger(__name__)
 

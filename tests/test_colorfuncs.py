@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
 import os
-import pydantic
-import numpy as np
-import matplotlib as mpl
-from PIL import Image
-import pytest
 
-from ilivery.config.color_configs import ColorFunction
+import matplotlib as mpl
+import numpy as np
+import pydantic
+import pytest
+from PIL import Image
+
 from ilivery.colorfuncs import colorfunc_from_config
+from ilivery.config.color_configs import ColorFunction
 
 
 def _image_from_cfunc(cfunc, size=(200, 200)):

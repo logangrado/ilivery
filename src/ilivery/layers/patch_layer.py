@@ -2,9 +2,9 @@
 
 import numpy as np
 
+from ilivery import utils
 from ilivery.layer import Layer
 from ilivery.patches import poly_patch
-from ilivery import utils
 
 
 def _mirror_verts(verts, radii, config):

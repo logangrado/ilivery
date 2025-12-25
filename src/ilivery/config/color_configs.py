@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-from typing import List, Optional, Literal, Annotated, Union
+from typing import Annotated, List, Literal, Optional, Union
 
 import pydantic
 from pydantic_core import core_schema

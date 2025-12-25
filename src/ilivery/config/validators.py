@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import List, Any
+from typing import Any, List
 
 from pydantic import model_validator
 

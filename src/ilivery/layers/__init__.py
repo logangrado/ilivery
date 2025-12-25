@@ -2,16 +2,16 @@
 
 import inspect
 
-from .solid_layer import solid_layer
-from .decal_layer import decal_layer
-from .texture_layer import texture_layer
+from ilivery.layer import Layer
+
 from .class_decal_layer import class_decal_layer
+from .decal_layer import decal_layer
 from .patch_layer import patch_layer
 from .pattern_layer import pattern_layer
-from .stripe_layer import stripe_layer
 from .psd_layer import psd_layer
-
-from ilivery.layer import Layer
+from .solid_layer import solid_layer
+from .stripe_layer import stripe_layer
+from .texture_layer import texture_layer
 
 _layer_dict = {
     "SOLID": solid_layer,

@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from ilivery.layer import Layer
 from ilivery import utils
+from ilivery.layer import Layer
 
 from .patch_layer import _build_patch
 
@@ -120,7 +120,7 @@ def _compute_verticies(points, radii, width, tip_angles):
 
     else:
         if len(width) != len(points) - 1:
-            raise ValueError(f"Width have one fewer elements than points. Expected {len(points)-1}, got {len(width)}")
+            raise ValueError(f"Width have one fewer elements than points. Expected {len(points) - 1}, got {len(width)}")
         _widths = []
         for item in width:
             if isinstance(item, int):

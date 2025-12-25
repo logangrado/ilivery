@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-from ilivery.layer import Layer
-from ilivery.patterns.triangles import triangles
-from ilivery.patterns.hexagons import hexagons
-
-from ilivery.colormaps import colormap_from_config
 from ilivery.colorfuncs import colorfunc_from_config
+from ilivery.colormaps import colormap_from_config
+from ilivery.layer import Layer
+from ilivery.patterns.hexagons import hexagons
+from ilivery.patterns.triangles import triangles
 
 
 def triangle_pattern_layer(config, size):

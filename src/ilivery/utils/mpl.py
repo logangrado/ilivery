@@ -1,7 +1,7 @@
 import io
 
-from PIL import Image
 import matplotlib.pyplot as plt
+from PIL import Image
 
 
 def prep_ax(ax):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from typing import Union
-from pathlib import Path
 import shutil
+from pathlib import Path
+from typing import Union
 
 import numpy as np
 from PIL import Image, ImageEnhance
