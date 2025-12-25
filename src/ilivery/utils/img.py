@@ -1,5 +1,5 @@
-from PIL import Image, ImageEnhance
 import numpy as np
+from PIL import Image, ImageEnhance
 
 
 def mask(img: Image.Image, mask: np.ndarray, invert: bool = False) -> Image.Image:

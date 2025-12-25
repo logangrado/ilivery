@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
-import click
-
 import logging
+from pathlib import Path
+
+import click
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,9 @@ def _load_config(config_path):
     config_path = Path(config_path)
 
     if config_path.suffix == ".jsonnet":
-        import _jsonnet
         import json
+
+        import _jsonnet
 
         config = json.loads(_jsonnet.evaluate_file(str(config_path)))
     else:
@@ -36,8 +37,8 @@ def _load_config(config_path):
 def main(config, no_cache, show, show_spec, save, debug):
     config = _load_config(config)
 
-    from ilivery.build_livery import build_livery
     from ilivery import utils
+    from ilivery.build_livery import build_livery
 
     no_cache = True
     livery = build_livery(config, no_cache, debug)

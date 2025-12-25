@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from matplotlib.path import Path
 from matplotlib.patches import PathPatch
+from matplotlib.path import Path
 from matplotlib.transforms import Bbox, BboxTransformTo
 
 from ilivery import utils

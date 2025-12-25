@@ -1,7 +1,7 @@
-from ilivery import TEXTURE_DIR
-
 import numpy as np
 from PIL import Image
+
+from ilivery import TEXTURE_DIR
 
 
 def carbon_fiber(size=(2048, 2048)):

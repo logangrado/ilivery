@@ -4,7 +4,6 @@
 import numpy as np
 from PIL import Image
 
-
 from ilivery import TEXTURE_DIR
 from ilivery.layer import Layer
 

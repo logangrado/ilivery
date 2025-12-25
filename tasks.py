@@ -12,7 +12,6 @@ SHELL = "/bin/sh"
 def format(c, check=False):
     dirs = ["src", "tests"]
     dirs = " ".join([str(ROOT / d) for d in dirs])
-    print(dirs)
     format_command = f"ruff format {dirs}"
     lint_command = f"ruff check {dirs}"
 
@@ -22,8 +21,6 @@ def format(c, check=False):
         lint_command += " --fix"
 
     print("Formatting")
-    print(format_command)
     c.run(format_command, shell=SHELL)
     print("Linting")
-    print(lint_command)
     c.run(lint_command, shell=SHELL)

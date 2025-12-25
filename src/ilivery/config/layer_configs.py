@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
-from typing import List, Union, Annotated, Optional, Tuple
-from typing_extensions import Literal
-
+from typing import Annotated, List, Optional, Tuple, Union
 
 import pydantic
+from typing_extensions import Literal
 
-from ilivery.config.base_model import BaseModel
 from ilivery.config import validators
-from ilivery.config.color_configs import Color, Spec, ColorMap, ColorFunction
-
+from ilivery.config.base_model import BaseModel
+from ilivery.config.color_configs import Color, ColorFunction, ColorMap, Spec
 
 # LAYERS
 # ==================================

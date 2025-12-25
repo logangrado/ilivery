@@ -5,9 +5,10 @@ import shutil
 from typing import Iterable, TypeAlias
 
 import numpy as np
-from ilivery import TEMPLATE_DIR
 from PIL import Image
 from psd_tools import PSDImage
+
+from ilivery import TEMPLATE_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -209,8 +210,8 @@ def _crop_bool_mask(mask_bool: np.ndarray):
     bbox = _bbox_from_bool(mask_bool)
     if bbox is None:
         raise ValueError("Mask is empty!")
-    l, t, r, b = bbox
-    return mask_bool[t:b, l:r].copy(), bbox  # small copy keeps it independent
+    left, top, right, bottom = bbox
+    return mask_bool[top:bottom, left:right].copy(), bbox  # small copy keeps it independent
 
 
 def get_section_mask(expression: str, template, crop_mask=True) -> tuple[np.ndarray, tuple[int, int]]:

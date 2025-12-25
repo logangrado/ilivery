@@ -4,7 +4,7 @@ from pathlib import Path
 import loggerado
 import matplotlib
 
-from ._version import __version__
+from ._version import __version__ as __version__
 
 matplotlib.use("agg")
 import matplotlib.pyplot

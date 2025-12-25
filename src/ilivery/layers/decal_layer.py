@@ -3,8 +3,8 @@
 import numpy as np
 from PIL import Image
 
-from ilivery.layer import Layer
 from ilivery import DECAL_DIR
+from ilivery.layer import Layer
 from ilivery.patterns.logo import logo
 
 
