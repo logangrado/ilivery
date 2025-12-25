@@ -1,16 +1,17 @@
 import hashlib
-import functools
-import numpy as np
+import logging
 import re
 import shutil
+from typing import Iterable, TypeAlias
 
+import numpy as np
 from ilivery import TEMPLATE_DIR
-from psd_tools import PSDImage
 from PIL import Image
-
-import logging
+from psd_tools import PSDImage
 
 logger = logging.getLogger(__name__)
+
+Template: TypeAlias = dict[str, "Template | Image.Image"]
 
 
 def _compute_file_hash(path, buffsize=1024**2):
@@ -68,7 +69,7 @@ def _cache_psd_recursive(cache_dir, group, size, parent_groups=None):
             layer.save(fp=layer_cache_path, format="png", compression_level=0)
 
 
-def _load_cached_psd(cache_dir, groups=None):
+def _load_cached_psd(cache_dir, groups=None) -> Template:
     out = {}
     size = [0, 0]
     for path in cache_dir.glob("*"):
@@ -101,47 +102,78 @@ def _format_keys_recursive(x, indent=0):
     return out
 
 
-def _get_section_component(section, psd_layers):
-    sections = section.split(".")
-
-    section_masks = functools.reduce(lambda x, y: x.get(y, {}), [psd_layers] + sections)
-    # section_mask = self._psd_layers.get(section, None)
-    if section_masks == {}:
-        raise ValueError(f"Unknown section '{section}'.\nAvailabe sections:\n{_format_keys_recursive(psd_layers)}")
-
-    if isinstance(section_masks, dict):
-        section_masks = section_masks.values()
+def _iter_leaf_images(node) -> Iterable[Image.Image]:
+    """Yield all PIL images under a node (recursive if dict)."""
+    if isinstance(node, dict):
+        for v in node.values():
+            yield from _iter_leaf_images(v)
     else:
-        section_masks = [section_masks]
+        yield node  # assume PIL.Image.Image
 
-    # Convert to binary masks
-    section_masks = [np.array(x)[:, :, 3] == 255 for x in section_masks]
 
-    # Union
-    mask = functools.reduce(lambda x, y: np.logical_or(x, y), section_masks)
+def _alpha_bool(img: Image.Image) -> np.ndarray:
+    """Get a 2D boolean mask from the image's alpha (or luminance if no alpha)."""
+    if "A" in img.getbands():
+        a = np.asarray(img.getchannel("A"), dtype=np.uint8)  # HxW
+    else:
+        # Fallback: luminance; Pillow convert('L') is fast and releases the GIL
+        a = np.asarray(img.convert("L"), dtype=np.uint8)
 
+    mask = a > 0  # True where 'on' (robust to antialiasing, not just ==255)
     return mask
 
 
-def _crop_mask(mask):
+def _lookup_path(psd_layers: dict, dotted: str):
+    """Follow a dotted path like 'segments.rear_0' into nested dicts."""
+    cur = psd_layers
+    for part in dotted.split("."):
+        if not isinstance(cur, dict):
+            # Reached a leaf too early
+            raise ValueError(f"Path '{dotted}' is not valid at '{part}'")
+        cur = cur.get(part, {})
+    return cur  # dict (group) or PIL.Image.Image (leaf)
+
+
+def _get_section_component_bool(
+    section: str, psd_layers: dict, token_cache: dict[str, np.ndarray] | None = None
+) -> np.ndarray:
     """
-    Crop a section mask to the smallest rectangle containing the mask
+    Resolve a section token to a 2D boolean mask.
+    - If token points to a dict, union all leaves beneath it.
+    - If token points to a single image, just return its alpha>0 mask.
+    Results are cached per token for the duration of a build.
     """
-    if isinstance(mask, dict):
-        mask = functools.reduce(lambda x, y: Image.alpha_composite(x, y), mask.values())
+    if token_cache is not None and section in token_cache:
+        return token_cache[section]
 
-    mask_data = np.array(mask)[:, :, 3] == 255
+    node = _lookup_path(psd_layers, section)
+    if node == {}:
+        # Helpful error with available keys
+        def _format_keys_recursive(d, prefix=""):
+            lines = []
+            for k, v in d.items():
+                path = f"{prefix}.{k}" if prefix else k
+                if isinstance(v, dict):
+                    lines.append(path + "/")
+                    lines.extend(_format_keys_recursive(v, path))
+                else:
+                    lines.append(path)
+            return lines
 
-    mask_indicies = np.where(mask_data)
+        avail = "\n".join(_format_keys_recursive(psd_layers))
+        raise ValueError(f"Unknown section '{section}'.\nAvailable sections:\n{avail}")
 
-    bbox = (
-        min(mask_indicies[1]),
-        min(mask_indicies[0]),
-        max(mask_indicies[1]) + 1,
-        max(mask_indicies[0]) + 1,
-    )
+    if isinstance(node, dict):
+        # Union all child leaves under this group
+        raise NotImplementedError("Someone forgot to implement this path")
+        # masks = (_alpha_bool(img) for img in _iter_leaf_images(node))
+        # out = _fast_union_bool(masks)
+    else:
+        out = _alpha_bool(node)
 
-    return mask, bbox
+    if token_cache is not None:
+        token_cache[section] = out
+    return out
 
 
 def _apply_operator(stack, operators):
@@ -159,7 +191,33 @@ def _apply_operator(stack, operators):
     return stack, operators
 
 
-def get_section_mask(expression, template):
+def _bbox_from_bool(mask_bool: np.ndarray):
+    """Tight bbox (l, t, r, b) for True region; O(H+W)."""
+    if not mask_bool.any():
+        return None
+    rows = mask_bool.any(axis=1)
+    cols = mask_bool.any(axis=0)
+    top = rows.argmax()
+    bottom = mask_bool.shape[0] - rows[::-1].argmax()
+    left = cols.argmax()
+    right = mask_bool.shape[1] - cols[::-1].argmax()
+    return (left, top, right, bottom)
+
+
+def _crop_bool_mask(mask_bool: np.ndarray):
+    """Return (cropped_bool, bbox) with tight bbox; raises if empty."""
+    bbox = _bbox_from_bool(mask_bool)
+    if bbox is None:
+        raise ValueError("Mask is empty!")
+    l, t, r, b = bbox
+    return mask_bool[t:b, l:r].copy(), bbox  # small copy keeps it independent
+
+
+def get_section_mask(expression: str, template, crop_mask=True) -> tuple[np.ndarray, tuple[int, int]]:
+    """
+    Collect the section mask given the expression and template.
+    """
+    logger.debug(f"Getting section: {expression}")
     tokens = re.findall(r"[a-zA-Z0-9_.]+|[&|~()]", expression)
     stack = []
     operators = []
@@ -167,6 +225,7 @@ def get_section_mask(expression, template):
     if template is None:
         raise ValueError("Attempted to get section mask, but no template provided")
 
+    logger.debug("Building operator stack")
     i = 0
     while i < len(tokens):
         token = tokens[i]
@@ -174,9 +233,9 @@ def get_section_mask(expression, template):
             # If there's a pending NOT (~) operator, apply it immediately
             if operators and operators[-1] == "~":
                 operators.pop()  # Remove the NOT operator
-                stack.append(~_get_section_component(token, template))
+                stack.append(~_get_section_component_bool(token, template))
             else:
-                stack.append(_get_section_component(token, template))
+                stack.append(_get_section_component_bool(token, template))
         elif token in ("&", "|"):
             while operators and operators[-1] in ("&", "|") and operators[-1] != "(":
                 stack, operators = _apply_operator(stack, operators)
@@ -193,20 +252,22 @@ def get_section_mask(expression, template):
             raise ValueError(f"Invalid token: {token}")
         i += 1
 
+    logger.debug("Applying operations")
     while operators:
         stack, operators = _apply_operator(stack, operators)
 
-    section_mask = stack[0]
+    mask_bool = stack[0]  # 2D boolean ndarray
 
-    if section_mask.sum() == 0:
+    if not mask_bool.any():
         raise ValueError(f"Mask is empty!\nSection expression: {expression}")
 
-    section_mask = (section_mask.reshape(-1, 1) * np.array([0, 0, 0, 255], dtype="uint8")).reshape(
-        *section_mask.shape, 4
-    )
-    section_mask = Image.fromarray(section_mask)
-
-    section_mask, bbox = _crop_mask(section_mask)
+    if crop_mask:
+        logger.debug("Cropping mask")
+        section_mask, bbox = _crop_bool_mask(mask_bool)
+    else:
+        section_mask = mask_bool
+        bbox = (0, 0) + section_mask.shape
+    logger.debug("Done")
     return section_mask, bbox
 
 
@@ -223,7 +284,7 @@ def load_layers(path, groups=None):
             cache_valid = True
 
     if not cache_valid:
-        logger.info("Cache invalid, re-caching PSD layers")
+        logger.debug("Cache invalid, re-caching PSD layers")
         if cache_base_path.exists():
             shutil.rmtree(cache_base_path)
         psd = PSDImage.open(path)
@@ -238,5 +299,4 @@ def load_layers(path, groups=None):
 
     # Load in the data from cache.
     out, size = _load_cached_psd(cache_paths["images"], groups)
-
     return out, checksum, tuple(size)
