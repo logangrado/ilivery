@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
+import datetime
 import functools
 import hashlib
 import json
 import logging
 import shutil
-import tqdm
-import datetime
 from concurrent import futures
 from pathlib import Path
+
+import tqdm
 
 from ilivery import LAYER_CACHE_DIR, TEMPLATE_DIR, utils
 from ilivery.layer import Layer
 from ilivery.layers import layer_from_config
-from ilivery.utils.executor import make_executor
 from ilivery.reduce_merge import reduce_submit_in_order
-
+from ilivery.utils.executor import make_executor
 
 logger = logging.getLogger(__name__)
 
@@ -129,9 +129,10 @@ class Livery:
                 )
 
         logger.debug("Building layers")
-        with make_executor(threads) as pool, tqdm.tqdm(
-            total=len(build_list), desc="Layers", disable=not progress
-        ) as pbar:
+        with (
+            make_executor(threads) as pool,
+            tqdm.tqdm(total=len(build_list), desc="Layers", disable=not progress) as pbar,
+        ):
             final_future = reduce_submit_in_order(build_list, _build_layer, _merge, pool=pool, pbar=pbar)
 
             livery = final_future.result()
@@ -170,7 +171,7 @@ class Livery:
         self._livery._spec.save(fp=spec_path, format="tga", compression="tga_rle")
 
 
-def build_livery(config, no_cache, debug):
+def build_livery(config, no_cache, debug: bool = False):
     livery = Livery(config, no_cache)
 
     threads = 16

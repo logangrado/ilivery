@@ -1,6 +1,8 @@
-import pytest
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import pytest
+from PIL import Image, ImageDraw
 
 REF_BASE_PATH = Path(__file__).parent / "data" / "ref"
 
@@ -16,7 +18,7 @@ def pytest_addoption(parser):
     )
 
 
-def _add_grid(image, grid_spacing: int, center_line_thickness: int = 3, alpha: float = 0.8):
+def _add_grid(image: Image, grid_spacing: int, center_line_thickness: int = 3, alpha: float = 0.8):
     """
     Adds a grid to the image with gridlines every `grid_spacing` pixels, and an extra thick line at the center.
 
@@ -28,8 +30,6 @@ def _add_grid(image, grid_spacing: int, center_line_thickness: int = 3, alpha: f
     Returns:
         Image.Image: The image with the added grid.
     """
-    from PIL import ImageDraw
-
     draw = ImageDraw.Draw(image)
     width, height = image.size
 

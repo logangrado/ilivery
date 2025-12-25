@@ -2,7 +2,7 @@ import hashlib
 import logging
 import re
 import shutil
-from typing import Iterable
+from typing import Iterable, TypeAlias
 
 import numpy as np
 from ilivery import TEMPLATE_DIR
@@ -10,6 +10,8 @@ from PIL import Image
 from psd_tools import PSDImage
 
 logger = logging.getLogger(__name__)
+
+Template: TypeAlias = dict[str, "Template | Image.Image"]
 
 
 def _compute_file_hash(path, buffsize=1024**2):
@@ -67,7 +69,7 @@ def _cache_psd_recursive(cache_dir, group, size, parent_groups=None):
             layer.save(fp=layer_cache_path, format="png", compression_level=0)
 
 
-def _load_cached_psd(cache_dir, groups=None):
+def _load_cached_psd(cache_dir, groups=None) -> Template:
     out = {}
     size = [0, 0]
     for path in cache_dir.glob("*"):
@@ -212,7 +214,13 @@ def _crop_bool_mask(mask_bool: np.ndarray):
     return mask_bool[t:b, l:r].copy(), bbox  # small copy keeps it independent
 
 
-def get_section_mask(expression, template, crop_mask=True):
+def get_section_mask(expression: str, template, crop_mask=True) -> tuple[np.ndarray, tuple[int, int]]:
+    """
+    Collect the section mask given the expression and template.
+    """
+    # fmt: off
+    import ipdb; ipdb.set_trace()
+    # fmt: on
     logger.debug(f"Getting section: {expression}")
     tokens = re.findall(r"[a-zA-Z0-9_.]+|[&|~()]", expression)
     stack = []
@@ -295,5 +303,4 @@ def load_layers(path, groups=None):
 
     # Load in the data from cache.
     out, size = _load_cached_psd(cache_paths["images"], groups)
-
     return out, checksum, tuple(size)
